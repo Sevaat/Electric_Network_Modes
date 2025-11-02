@@ -1,0 +1,27 @@
+{
+  "nodes": [
+    {
+      "name": "",
+      "type_node": "",
+      "real_power": "",
+      "imaginary_power": "",
+      "real_voltage": "",
+      "imaginary_voltage": ""
+    }
+  ],
+  "branches": [
+    {
+      "start": "",
+      "end": "",
+      "real_resistance": "",
+      "imaginary_resistance": "",
+      "real_conductivity": "",
+      "imaginary_conductivity": ""
+    }
+  ],
+  "parameters": {
+    "nominal_voltage": "",
+    "accuracy": "",
+    "iterations": ""
+  }
+}
