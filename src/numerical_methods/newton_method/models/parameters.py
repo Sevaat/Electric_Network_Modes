@@ -13,4 +13,4 @@ class Parameters(BaseModel):
             if key not in parameters:
                 raise ValidationError
         parameters.update(data)
-        super().__init__(**data)
+        super().__init__(**parameters)

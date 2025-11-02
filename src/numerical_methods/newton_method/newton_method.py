@@ -3,7 +3,7 @@ import os
 from abc import ABC
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Union, Tuple
+from typing import List, Dict, Any, Union, Tuple, Optional
 
 import numpy
 
@@ -22,10 +22,12 @@ class NewtonMethod:
         self.nodes = [Node(node) for node in data['nodes']]
         for branch in data['branches']:
             for node in self.nodes:
-                if branch['start'] == node.name:
-                    branch['start'] = node
-                if branch['end'] == node.name:
-                    branch['end'] = node
+                if not isinstance(branch['start'], Node):
+                    if branch['start'] == node.name:
+                        branch['start'] = node
+                if not isinstance(branch['end'], Node):
+                    if branch['end'] == node.name:
+                        branch['end'] = node
         self.branches = [Branch(branch) for branch in data['branches']]
         self.parameters = Parameters(data['parameters'])
 
@@ -64,7 +66,12 @@ class NewtonMethod:
                 nodes_list = [node.to_dict() for node in self.nodes]
                 branch_list = [branch.to_dict() for branch in self.branches]
                 full_power_loss = sum([branch.power_losses for branch in self.branches])
-                data = {"nodes": nodes_list, "branches": branch_list, "full_power_loss": full_power_loss}
+                data = {
+                    "nodes": nodes_list,
+                    "branches": branch_list,
+                    "real_full_power_loss": full_power_loss.real,
+                    "imaginary_full_power_loss": full_power_loss.imag
+                }
                 json.dump(data, file)
             print("Запись результатов прошла успешно")
         except Exception as e:
@@ -120,7 +127,7 @@ class NewtonMethod:
         node_count = len(self.nodes)
         power_imbalance: List[complex] = []
         for i in range(node_count):
-            full_power: Union[complex, None] = None
+            full_power: Optional[complex] = None
             if self.nodes[i].type_node == 'ИП':
                 full_power = complex(0, 0)
             elif self.nodes[i].type_node == 'ИПО':
@@ -128,9 +135,9 @@ class NewtonMethod:
             else:
                 full_power = self.nodes[i].full_power
             real_power = [0, 0, 0]
-            real_power[0] = full_power.real + conductivity_matrix[i, i].real * self.nodes[i].voltage ** 2
+            real_power[0] = full_power.real + conductivity_matrix[i, i].real * abs(self.nodes[i].voltage) ** 2
             imaginary_power = [0, 0, 0]
-            imaginary_power[0] = full_power.imag - conductivity_matrix[i, i].imag * self.nodes[i].voltage ** 2
+            imaginary_power[0] = full_power.imag - conductivity_matrix[i, i].imag * abs(self.nodes[i].voltage) ** 2
             for j in range(node_count):
                 if j != i:
                     real_power[1] += conductivity_matrix[i, j].real * self.nodes[j].real_voltage
@@ -160,114 +167,108 @@ class NewtonMethod:
                     return True
         return False
 
-    class JacobiMatrix(ABC):
-        @staticmethod
-        def _get_dpi_du(i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
-            """
-            Получить значения производных dpi/du
-            :param i: номер текущего узла
-            :param j: номер другого узла
-            :param conductivity_matrix: матрица собственных и взаимных проводимостей
-            :return: значения производных dpi/du
-            """
-            if i == j:
-                dpi_dui_real = [0, 0]
-                dpi_dui_imag = [0, 0]
-                dpi_dui_real[0] = 2 * conductivity_matrix[i, i].real * NewtonMethod.nodes[i].real_voltage
-                dpi_dui_imag[0] = 2 * conductivity_matrix[i, i].real * NewtonMethod.nodes[i].imaginary_voltage
-                for k in range(len(NewtonMethod.nodes)):  # номер позиции под знаком суммы
-                    if k != i:
-                        dpi_dui_real[1] += conductivity_matrix[i, k].real * NewtonMethod.nodes[k].real_voltage
-                        dpi_dui_real[1] -= conductivity_matrix[i, k].imag * NewtonMethod.nodes[k].imaginary_voltage
-                        dpi_dui_imag[1] += conductivity_matrix[i, k].real * NewtonMethod.nodes[k].imaginary_voltage
-                        dpi_dui_imag[1] += conductivity_matrix[i, k].imag * NewtonMethod.nodes[k].real_voltage
-                dpi_dui_real = dpi_dui_real[0] + dpi_dui_real[1]
-                dpi_dui_imag = dpi_dui_imag[0] + dpi_dui_imag[1]
-                return dpi_dui_real, dpi_dui_imag
-            else:
-                dpi_duj_real = conductivity_matrix[i, j].real * NewtonMethod.nodes[i].real_voltage
-                dpi_duj_real += conductivity_matrix[i, j].imag * NewtonMethod.nodes[i].imaginary_voltage
-                dpi_duj_imag = conductivity_matrix[i, j].real * NewtonMethod.nodes[i].imaginary_voltage
-                dpi_duj_imag -= conductivity_matrix[i, j].imag * NewtonMethod.nodes[i].real_voltage
-                return dpi_duj_real, dpi_duj_imag
+    def _get_dpi_du(self, i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
+        """
+        Получить значения производных dpi/du
+        :param i: номер текущего узла
+        :param j: номер другого узла
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
+        :return: значения производных dpi/du
+        """
+        if i == j:
+            dpi_dui_real = [0, 0]
+            dpi_dui_imag = [0, 0]
+            dpi_dui_real[0] = 2 * conductivity_matrix[i, i].real * self.nodes[i].real_voltage
+            dpi_dui_imag[0] = 2 * conductivity_matrix[i, i].real * self.nodes[i].imaginary_voltage
+            for k in range(len(self.nodes)):  # номер позиции под знаком суммы
+                if k != i:
+                    dpi_dui_real[1] += conductivity_matrix[i, k].real * self.nodes[k].real_voltage
+                    dpi_dui_real[1] -= conductivity_matrix[i, k].imag * self.nodes[k].imaginary_voltage
+                    dpi_dui_imag[1] += conductivity_matrix[i, k].real * self.nodes[k].imaginary_voltage
+                    dpi_dui_imag[1] += conductivity_matrix[i, k].imag * self.nodes[k].real_voltage
+            dpi_dui_real = dpi_dui_real[0] + dpi_dui_real[1]
+            dpi_dui_imag = dpi_dui_imag[0] + dpi_dui_imag[1]
+            return dpi_dui_real, dpi_dui_imag
+        else:
+            dpi_duj_real = conductivity_matrix[i, j].real * self.nodes[i].real_voltage
+            dpi_duj_real += conductivity_matrix[i, j].imag * self.nodes[i].imaginary_voltage
+            dpi_duj_imag = conductivity_matrix[i, j].real * self.nodes[i].imaginary_voltage
+            dpi_duj_imag -= conductivity_matrix[i, j].imag * self.nodes[i].real_voltage
+            return dpi_duj_real, dpi_duj_imag
 
-        @staticmethod
-        def _get_row_pi(i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
-            """
-            Получить строку значений производных dpi/du
-            :param i: номер текущего узла
-            :param conductivity_matrix: матрица собственных и взаимных проводимостей
-            :return: строка матрицы значений производных dpi/du
-            """
-            row_pi_jm = []
-            for j in range(len(NewtonMethod.nodes)):  # номер напряжения
-                if NewtonMethod.nodes[j].type_node != 'ИП':
-                    dpi_du = NewtonMethod.JacobiMatrix._get_dpi_du(i, j, conductivity_matrix)
-                    row_pi_jm.append(dpi_du[0])
-                    row_pi_jm.append(dpi_du[1])
-            return row_pi_jm
+    def _get_row_pi(self, i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
+        """
+        Получить строку значений производных dpi/du
+        :param i: номер текущего узла
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
+        :return: строка матрицы значений производных dpi/du
+        """
+        row_pi_jm = []
+        for j in range(len(self.nodes)):  # номер напряжения
+            if self.nodes[j].type_node != 'ИП':
+                dpi_du = self._get_dpi_du(i, j, conductivity_matrix)
+                row_pi_jm.append(dpi_du[0])
+                row_pi_jm.append(dpi_du[1])
+        return row_pi_jm
 
-        @staticmethod
-        def _get_dqi_du(i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
-            """
-            Получить значения производных dqi/du
-            :param i: номер текущего узла
-            :param j: номер другого узла
-            :param conductivity_matrix: матрица собственных и взаимных проводимостей
-            :return: значения производных dqi/du
-            """
-            if i == j:
-                dqi_dui_real = [0, 0]
-                dqi_dui_imag = [0, 0]
-                dqi_dui_real[0] = - 2 * conductivity_matrix[i, i].imag * NewtonMethod.nodes[i].real_voltage
-                dqi_dui_imag[0] = - 2 * conductivity_matrix[i, i].imag * NewtonMethod.nodes[i].imaginary_voltage
-                for k in range(len(NewtonMethod.nodes)):  # номер позиции под знаком суммы
-                    if k != i:
-                        dqi_dui_real[1] += conductivity_matrix[i, k].real * NewtonMethod.nodes[k].imaginary_voltage
-                        dqi_dui_real[1] += conductivity_matrix[i, k].imag * NewtonMethod.nodes[k].real_voltage
-                        dqi_dui_imag[1] += conductivity_matrix[i, k].real * NewtonMethod.nodes[k].real_voltage
-                        dqi_dui_imag[1] -= conductivity_matrix[i, k].imag * NewtonMethod.nodes[k].imaginary_voltage
-                dqi_dui_real = dqi_dui_real[0] - dqi_dui_real[1]
-                dqi_dui_imag = dqi_dui_imag[0] + dqi_dui_imag[1]
-                return dqi_dui_real, dqi_dui_imag
-            else:
-                dqi_duj_real = conductivity_matrix[i, j].real * NewtonMethod.nodes[i].imaginary_voltage
-                dqi_duj_real -= conductivity_matrix[i, j].imag * NewtonMethod.nodes[i].real_voltage
-                dqi_duj_imag = - conductivity_matrix[i, j].real * NewtonMethod.nodes[i].real_voltage
-                dqi_duj_imag -= conductivity_matrix[i, j].imag * NewtonMethod.nodes[i].imaginary_voltage
-            return dqi_duj_real, dqi_duj_imag
+    def _get_dqi_du(self, i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
+        """
+        Получить значения производных dqi/du
+        :param i: номер текущего узла
+        :param j: номер другого узла
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
+        :return: значения производных dqi/du
+        """
+        if i == j:
+            dqi_dui_real = [0, 0]
+            dqi_dui_imag = [0, 0]
+            dqi_dui_real[0] = - 2 * conductivity_matrix[i, i].imag * self.nodes[i].real_voltage
+            dqi_dui_imag[0] = - 2 * conductivity_matrix[i, i].imag * self.nodes[i].imaginary_voltage
+            for k in range(len(self.nodes)):  # номер позиции под знаком суммы
+                if k != i:
+                    dqi_dui_real[1] += conductivity_matrix[i, k].real * self.nodes[k].imaginary_voltage
+                    dqi_dui_real[1] += conductivity_matrix[i, k].imag * self.nodes[k].real_voltage
+                    dqi_dui_imag[1] += conductivity_matrix[i, k].real * self.nodes[k].real_voltage
+                    dqi_dui_imag[1] -= conductivity_matrix[i, k].imag * self.nodes[k].imaginary_voltage
+            dqi_dui_real = dqi_dui_real[0] - dqi_dui_real[1]
+            dqi_dui_imag = dqi_dui_imag[0] + dqi_dui_imag[1]
+            return dqi_dui_real, dqi_dui_imag
+        else:
+            dqi_duj_real = conductivity_matrix[i, j].real * self.nodes[i].imaginary_voltage
+            dqi_duj_real -= conductivity_matrix[i, j].imag * self.nodes[i].real_voltage
+            dqi_duj_imag = - conductivity_matrix[i, j].real * self.nodes[i].real_voltage
+            dqi_duj_imag -= conductivity_matrix[i, j].imag * self.nodes[i].imaginary_voltage
+        return dqi_duj_real, dqi_duj_imag
 
-        @staticmethod
-        def _get_row_qi(i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
-            """
-            Получить строку значений производных dqi/du
-            :param i: номер текущего узла
-            :param conductivity_matrix: матрица собственных и взаимных проводимостей
-            :return: строка матрицы значений производных dqi/du
-            """
-            row_qi_jm = []
-            for j in range(len(NewtonMethod.nodes)):  # номер напряжения
-                if NewtonMethod.nodes[j].type_node != 'ИП':
-                    dqi_du = NewtonMethod.JacobiMatrix._get_dqi_du(i, j, conductivity_matrix)
-                    row_qi_jm.append(dqi_du[0])
-                    row_qi_jm.append(dqi_du[1])
-            return row_qi_jm
+    def _get_row_qi(self, i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
+        """
+        Получить строку значений производных dqi/du
+        :param i: номер текущего узла
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
+        :return: строка матрицы значений производных dqi/du
+        """
+        row_qi_jm = []
+        for j in range(len(self.nodes)):  # номер напряжения
+            if self.nodes[j].type_node != 'ИП':
+                dqi_du = self._get_dqi_du(i, j, conductivity_matrix)
+                row_qi_jm.append(dqi_du[0])
+                row_qi_jm.append(dqi_du[1])
+        return row_qi_jm
 
-        @staticmethod
-        def get_jacobi_matrix(conductivity_matrix: numpy.ndarray) -> numpy.ndarray:
-            """
-            Получить матрицу Якоби
-            :param conductivity_matrix: матрица собственных и взаимных проводимостей
-            :return: матрица Якоби
-            """
-            jacobi_matrix = []
-            for i in range(len(NewtonMethod.nodes)):  # номер мощности
-                if NewtonMethod.nodes[i].type_node != 'ИП':
-                    row_pi = NewtonMethod.JacobiMatrix._get_row_pi(i, conductivity_matrix)
-                    jacobi_matrix.append(row_pi)
-                    row_qi = NewtonMethod.JacobiMatrix._get_row_qi(i, conductivity_matrix)
-                    jacobi_matrix.append(row_qi)
-            return numpy.array(jacobi_matrix)
+    def _get_jacobi_matrix(self, conductivity_matrix: numpy.ndarray) -> numpy.ndarray:
+        """
+        Получить матрицу Якоби
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
+        :return: матрица Якоби
+        """
+        jacobi_matrix = []
+        for i in range(len(self.nodes)):  # номер мощности
+            if self.nodes[i].type_node != 'ИП':
+                row_pi = self._get_row_pi(i, conductivity_matrix)
+                jacobi_matrix.append(row_pi)
+                row_qi = self._get_row_qi(i, conductivity_matrix)
+                jacobi_matrix.append(row_qi)
+        return numpy.array(jacobi_matrix)
 
     def _get_delta_voltage(self, power_imbalance: List[complex], jacobi_matrix: numpy.ndarray) -> List[complex]:
         """
@@ -306,12 +307,12 @@ class NewtonMethod:
 
     def run(self) -> None:
         conductivity_matrix = self._get_conductivity_matrix()
-        for i in range(0, self.parameters.number_of_iterations):
+        for i in range(0, self.parameters.iterations):
             power_imbalance = self._get_power_imbalance(conductivity_matrix)
             if self._unbalance_condition(power_imbalance):
                 print('Точность достигнута! Расчет окончен!')
                 break
-            jacobi_matrix = self.JacobiMatrix.get_jacobi_matrix(conductivity_matrix)
+            jacobi_matrix = self._get_jacobi_matrix(conductivity_matrix)
             delta_voltage = self._get_delta_voltage(power_imbalance, jacobi_matrix)
             self._voltage_correction(delta_voltage)
         self._currents()

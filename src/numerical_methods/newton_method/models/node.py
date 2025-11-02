@@ -5,7 +5,7 @@ from math import atan
 
 
 class Node(BaseModel):
-    real_power: Union[Union[float, int], str]               # активная мощность узла
+    real_power: Union[float, int]               # активная мощность узла
     imaginary_power: Union[Union[float, int], str]          # реактивная мощность узла
     real_voltage: Union[float, int]                         # действительная часть напряжения
     imaginary_voltage: Union[float, int]                    # мнимая часть напряжения
@@ -46,9 +46,9 @@ class Node(BaseModel):
             "type_node": self.type_node,
             "real_power": self.real_power,
             "imaginary_power": self.imaginary_power,
-            "full_power": (self.real_power**2 + self.imaginary_power**2) ** 0.5,
+            "full_power": abs(self.full_power),
             "real_voltage": self.real_voltage,
             "imaginary_voltage": self.imaginary_voltage,
-            "voltage_module": (self.real_power ** 2 + self.imaginary_power ** 2) ** 0.5,
-            "voltage_angle": atan(self.imaginary_power / self.real_power)
+            "voltage_module": abs(self.voltage),
+            "voltage_angle": atan(self.imaginary_voltage / self.real_voltage)
         }

@@ -33,10 +33,10 @@
       "imaginary_voltage": 0
     },
     {
-      "name": "1",
+      "name": "4",
       "type_node": "ИП",
-      "real_power": "",
-      "imaginary_power": "",
+      "real_power": 0,
+      "imaginary_power": 0,
       "real_voltage": 242,
       "imaginary_voltage": 0
     }

@@ -1,4 +1,4 @@
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, Optional
 
 from pydantic import ValidationError, BaseModel
 
@@ -12,8 +12,8 @@ class Branch(BaseModel):
     imaginary_resistance: Union[float, int]         # реактивное сопротивление
     real_conductivity: Union[float, int]            # активная проводимость
     imaginary_conductivity: Union[float, int]       # реактивная проводимость
-    current: complex                                # ток в линии
-    power_losses: complex                           # потери в линии
+    current: Optional[complex] = None               # ток в линии
+    power_losses: Optional[complex] = None          # потери в линии
 
     def __init__(self, branch: Dict[str, Any], **data: Any) -> None:
         for key in vars(self):
@@ -24,7 +24,7 @@ class Branch(BaseModel):
 
     @property
     def impedance(self) -> complex:
-        return complex(self.real_conductivity, self.imaginary_conductivity)
+        return complex(self.real_resistance, self.imaginary_resistance)
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -39,6 +39,7 @@ class Branch(BaseModel):
             "real_conductivity": self.real_conductivity,
             "imaginary_conductivity": self.imaginary_conductivity,
             "current": abs(self.current),
-            "power_losses": self.power_losses
+            "real_power_losses": self.power_losses.real,
+            "imaginary_power_losses": self.power_losses.imag
         }
 
