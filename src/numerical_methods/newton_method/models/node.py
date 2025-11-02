@@ -5,12 +5,12 @@ from math import atan
 
 
 class Node(BaseModel):
-    real_power: Union[float, int]               # активная мощность узла
-    imaginary_power: Union[float, int]          # реактивная мощность узла
-    real_voltage: Union[float, int]             # действительная часть напряжения
-    imaginary_voltage: Union[float, int]        # мнимая часть напряжения
-    type_node: str                              # тип узла
-    name: str                                   # имя узла
+    real_power: Union[Union[float, int], str]               # активная мощность узла
+    imaginary_power: Union[Union[float, int], str]          # реактивная мощность узла
+    real_voltage: Union[float, int]                         # действительная часть напряжения
+    imaginary_voltage: Union[float, int]                    # мнимая часть напряжения
+    type_node: str                                          # тип узла
+    name: str                                               # имя узла
 
     def __init__(self, node: Dict[str, Any], **data: Any) -> None:
         for key in vars(self):
@@ -18,6 +18,23 @@ class Node(BaseModel):
                 raise ValidationError
         node.update(data)
         super().__init__(**node)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Node):
+            raise TypeError
+        return self.name == other.name
+
+    @property
+    def full_power(self) -> complex:
+        return complex(self.real_power, self.imaginary_power)
+
+    @property
+    def voltage(self) -> complex:
+        return complex(self.real_voltage, self.imaginary_voltage)
+
+    def voltage_correction(self, delta_voltage: complex) -> None:
+        self.real_voltage += delta_voltage.real
+        self.imaginary_voltage += delta_voltage.imag
 
     def to_dict(self) -> Dict[str, Any]:
         """

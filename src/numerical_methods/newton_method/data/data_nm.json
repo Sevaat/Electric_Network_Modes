@@ -1,27 +1,99 @@
 {
   "nodes": [
     {
-      "name": "",
-      "type_node": "",
+      "name": "0",
+      "type_node": "НАГР",
+      "real_power": 124,
+      "imaginary_power": 31.08,
+      "real_voltage": 220,
+      "imaginary_voltage": 0
+    },
+    {
+      "name": "1",
+      "type_node": "НАГР",
+      "real_power": 96,
+      "imaginary_power": 19.49,
+      "real_voltage": 220,
+      "imaginary_voltage": 0
+    },
+    {
+      "name": "2",
+      "type_node": "НАГР",
+      "real_power": 104,
+      "imaginary_power": 34.18,
+      "real_voltage": 220,
+      "imaginary_voltage": 0
+    },
+    {
+      "name": "3",
+      "type_node": "ИПО",
+      "real_power": 106,
+      "imaginary_power": 21.52,
+      "real_voltage": 220,
+      "imaginary_voltage": 0
+    },
+    {
+      "name": "1",
+      "type_node": "ИП",
       "real_power": "",
       "imaginary_power": "",
-      "real_voltage": "",
-      "imaginary_voltage": ""
+      "real_voltage": 242,
+      "imaginary_voltage": 0
     }
   ],
   "branches": [
     {
-      "start": "",
-      "end": "",
-      "real_resistance": "",
-      "imaginary_resistance": "",
-      "real_conductivity": "",
-      "imaginary_conductivity": ""
+      "start": "3",
+      "end": "4",
+      "real_resistance": 4.9,
+      "imaginary_resistance": 18.41,
+      "real_conductivity": 0,
+      "imaginary_conductivity": 5.42e-5
+    },
+    {
+      "start": "0",
+      "end": "4",
+      "real_resistance": 3.71,
+      "imaginary_resistance": 22.39,
+      "real_conductivity": 0,
+      "imaginary_conductivity": 7.11e-5
+    },
+    {
+      "start": "0",
+      "end": "1",
+      "real_resistance": 4.2,
+      "imaginary_resistance": 19.41,
+      "real_conductivity": 0,
+      "imaginary_conductivity": 5.91e-5
+    },
+    {
+      "start": "1",
+      "end": "4",
+      "real_resistance": 6.81,
+      "imaginary_resistance": 31.49,
+      "real_conductivity": 0,
+      "imaginary_conductivity": 9.58e-5
+    },
+    {
+      "start": "2",
+      "end": "3",
+      "real_resistance": 2.73,
+      "imaginary_resistance": 16.48,
+      "real_conductivity": 0,
+      "imaginary_conductivity": 2.09e-4
+    },
+    {
+      "start": "1",
+      "end": "2",
+      "real_resistance": 5.37,
+      "imaginary_resistance": 20.16,
+      "real_conductivity": 0,
+      "imaginary_conductivity": 5.94e-5
     }
   ],
   "parameters": {
-    "nominal_voltage": "",
-    "accuracy": "",
-    "iterations": ""
+    "nominal_voltage": 220,
+    "accuracy": 0.001,
+    "iterations": 100
   }
 }
