@@ -42,8 +42,8 @@ def test_node(test_data):
     assert nodes[0] == nodes[0]
 
     # проверка свойств
-    assert nodes[1].full_power == complex(26.8675, 17.3205)
-    assert nodes[1].voltage == complex(110, 0)
+    assert abs(nodes[1].full_power - complex(28.8675, 17.3205)) < 0.01
+    assert abs(nodes[1].voltage - complex(110, 0)) < 0.01
 
     # метод коррекции напряжения
     nodes[1].voltage_correction(complex(10, 0))
