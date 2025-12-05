@@ -19,15 +19,28 @@ class NewtonMethod:
     def __init__(self):
         data = self._load()
         self.nodes = [Node.conv_from_dict(node) for node in data['NODES']]
-        for branch in data['BRANCHES']:
-            for node in self.nodes:
-                if not isinstance(branch['Node (start)'], Node):
-                    if branch['Node (start)'] == node.name:
-                        branch['Node (start)'] = node
-                if not isinstance(branch['Node (end)'], Node):
-                    if branch['Node (end)'] == node.name:
-                        branch['Node (end)'] = node
-        self.branches = [Branch.conv_from_dict(branch) for branch in data['BRANCHES']]
+
+        # if 'TRANSFORMERS' in data:
+        #     for transformer in data['TRANSFORMERS']:
+        #         for node in self.nodes:
+        #             if not isinstance(transformer['Node (HV)'], Node):
+        #                 if transformer['Node (HV)'] == node.name:
+        #                     transformer['Node (HV)'] = node
+        #             if not isinstance(transformer['Node (LV)'], Node):
+        #                 if transformer['Node (LV)'] == node.name:
+        #                     transformer['Node (LV)'] = node
+        #     self.branches = [Branch.conv_from_dict(branch) for branch in data['BRANCHES']]
+
+        if 'BRANCHES' in data:
+            for branch in data['BRANCHES']:
+                for node in self.nodes:
+                    if not isinstance(branch['Node (start)'], Node):
+                        if branch['Node (start)'] == node.name:
+                            branch['Node (start)'] = node
+                    if not isinstance(branch['Node (end)'], Node):
+                        if branch['Node (end)'] == node.name:
+                            branch['Node (end)'] = node
+            self.branches = [Branch.conv_from_dict(branch) for branch in data['BRANCHES']]
         self.parameters = Parameters.conv_from_dict(data['PARAMETERS'])
 
     @staticmethod
