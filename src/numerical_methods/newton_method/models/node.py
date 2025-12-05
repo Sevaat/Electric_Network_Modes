@@ -1,4 +1,4 @@
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, Self
 
 from pydantic import ValidationError, BaseModel
 from math import atan
@@ -18,6 +18,15 @@ class Node(BaseModel):
                 raise ValidationError
         node.update(data)
         super().__init__(**node)
+
+    @classmethod
+    def conv_from_dict(cls, input_dict_node: Dict[str, Any]) -> Any:
+        new_dict_node = {'name': input_dict_node['ИМЯ'], 'type_node': input_dict_node['ТИП УЗЛА (НАГР, ИПО, ИП)'],
+                         'real_power': input_dict_node['АКТ. МОЩНОСТЬ, МВт'],
+                         'imaginary_power': input_dict_node['РЕАКТ. МОЩНОСТЬ, Мвар'],
+                         'real_voltage': input_dict_node['АКТ. НАПРЯЖЕНИЕ, кВ'],
+                         'imaginary_voltage': input_dict_node['РЕАКТ. НАПРЯЖЕНИЕ, кВ']}
+        return cls(new_dict_node)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Node):

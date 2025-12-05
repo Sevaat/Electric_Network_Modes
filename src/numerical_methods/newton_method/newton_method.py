@@ -19,7 +19,7 @@ class NewtonMethod:
 
     def __init__(self):
         data = self._load()
-        self.nodes = [Node(node) for node in data['nodes']]
+        self.nodes = [Node.conv_from_dict(node) for node in data['nodes']]
         for branch in data['branches']:
             for node in self.nodes:
                 if not isinstance(branch['start'], Node):
@@ -37,7 +37,7 @@ class NewtonMethod:
         Читать JSON файл
         :return:
         """
-        filepath = str(Path(__file__).resolve().parent / "data")
+        filepath = str(Path(__file__).resolve().parent.parent.parent.parent / "data")
         os.makedirs(filepath, exist_ok=True)
         filepath = f"{filepath}/data_nm.json"
         data = {}
@@ -58,7 +58,7 @@ class NewtonMethod:
         Запись в JSON файл
         :return:
         """
-        filepath = str(Path(__file__).resolve().parent / "result")
+        filepath = str(Path(__file__).resolve().parent.parent.parent.parent / "result")
         os.makedirs(filepath, exist_ok=True)
         filepath = f"{filepath}/result_nm_{datetime.now().strftime("%d.%m.%Y_%H-%M-%S")}.json"
         try:
