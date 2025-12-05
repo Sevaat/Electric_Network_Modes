@@ -14,3 +14,15 @@ class Parameters(BaseModel):
                 raise ValidationError
         parameters.update(data)
         super().__init__(**parameters)
+
+    @classmethod
+    def conv_from_dict(cls, input_dict_param: Dict[str, Any]) -> Any:
+        """
+        Конвертация словаря входных данных
+        :param input_dict_param: словарь входных данных параметров
+        :return: экземпляр параметров
+        """
+        new_dict_param = {'nominal_voltage': input_dict_param['Nominal voltage, kV'],
+                          'accuracy': input_dict_param['Accuracy'],
+                          'iterations': input_dict_param['Max iterations']}
+        return cls(new_dict_param)

@@ -26,11 +26,12 @@ class Node(BaseModel):
         :param input_dict_node: словарь входных данных узла
         :return: экземпляр узла
         """
-        new_dict_node = {'name': input_dict_node['ИМЯ'], 'type_node': input_dict_node['ТИП УЗЛА (НАГР, ИПО, ИП)'],
-                         'real_power': input_dict_node['АКТ. МОЩНОСТЬ, МВт'],
-                         'imaginary_power': input_dict_node['РЕАКТ. МОЩНОСТЬ, Мвар'],
-                         'real_voltage': input_dict_node['АКТ. НАПРЯЖЕНИЕ, кВ'],
-                         'imaginary_voltage': input_dict_node['РЕАКТ. НАПРЯЖЕНИЕ, кВ']}
+        new_dict_node = {'name': input_dict_node['Name'],
+                         'type_node': input_dict_node['Node type (L, S, LS)'],
+                         'real_power': input_dict_node['Real power, MW'],
+                         'imaginary_power': input_dict_node['Imaginary power, Mvar'],
+                         'real_voltage': input_dict_node['Real voltage, kV'],
+                         'imaginary_voltage': input_dict_node['Imaginary voltage, kV']}
         return cls(new_dict_node)
 
     def __eq__(self, other: object) -> bool:

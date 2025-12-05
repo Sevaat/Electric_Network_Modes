@@ -1,6 +1,5 @@
 import json
 import os
-from abc import ABC
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Union, Tuple, Optional
@@ -19,17 +18,17 @@ class NewtonMethod:
 
     def __init__(self):
         data = self._load()
-        self.nodes = [Node.conv_from_dict(node) for node in data['nodes']]
-        for branch in data['branches']:
+        self.nodes = [Node.conv_from_dict(node) for node in data['NODES']]
+        for branch in data['BRANCHES']:
             for node in self.nodes:
-                if not isinstance(branch['start'], Node):
-                    if branch['start'] == node.name:
-                        branch['start'] = node
-                if not isinstance(branch['end'], Node):
-                    if branch['end'] == node.name:
-                        branch['end'] = node
-        self.branches = [Branch(branch) for branch in data['branches']]
-        self.parameters = Parameters(data['parameters'])
+                if not isinstance(branch['Node (start)'], Node):
+                    if branch['Node (start)'] == node.name:
+                        branch['Node (start)'] = node
+                if not isinstance(branch['Node (end)'], Node):
+                    if branch['Node (end)'] == node.name:
+                        branch['Node (end)'] = node
+        self.branches = [Branch.conv_from_dict(branch) for branch in data['BRANCHES']]
+        self.parameters = Parameters.conv_from_dict(data['PARAMETERS'])
 
     @staticmethod
     def _load() -> Dict[str, Any]:
@@ -67,10 +66,10 @@ class NewtonMethod:
                 branch_list = [branch.to_dict() for branch in self.branches]
                 full_power_loss = sum([branch.power_losses for branch in self.branches])
                 data = {
-                    "nodes": nodes_list,
-                    "branches": branch_list,
-                    "real_full_power_loss": full_power_loss.real,
-                    "imaginary_full_power_loss": full_power_loss.imag
+                    "NODES": nodes_list,
+                    "BRANCHES": branch_list,
+                    "REAL TOTAL POWER LOSS, MW": full_power_loss.real,
+                    "IMAGINARY TOTAL POWER LOSS, Mvar": full_power_loss.imag
                 }
                 json.dump(data, file)
             print("Запись результатов прошла успешно")
@@ -128,9 +127,9 @@ class NewtonMethod:
         power_imbalance: List[complex] = []
         for i in range(node_count):
             full_power: Optional[complex] = None
-            if self.nodes[i].type_node == 'ИП':
+            if self.nodes[i].type_node == 'S':
                 full_power = complex(0, 0)
-            elif self.nodes[i].type_node == 'ИПО':
+            elif self.nodes[i].type_node == 'LS':
                 full_power = -self.nodes[i].full_power
             else:
                 full_power = self.nodes[i].full_power
@@ -162,7 +161,7 @@ class NewtonMethod:
         :return: True - небалансы меньше заданного порога точности, False - иначе
         """
         for i, p_imb in enumerate(power_imbalance):
-            if self.nodes[i].type_node != 'ИП':
+            if self.nodes[i].type_node != 'S':
                 if abs(p_imb.real) < self.parameters.accuracy and abs(p_imb.imag) < self.parameters.accuracy:
                     return True
         return False
@@ -205,7 +204,7 @@ class NewtonMethod:
         """
         row_pi_jm = []
         for j in range(len(self.nodes)):  # номер напряжения
-            if self.nodes[j].type_node != 'ИП':
+            if self.nodes[j].type_node != 'S':
                 dpi_du = self._get_dpi_du(i, j, conductivity_matrix)
                 row_pi_jm.append(dpi_du[0])
                 row_pi_jm.append(dpi_du[1])
@@ -249,7 +248,7 @@ class NewtonMethod:
         """
         row_qi_jm = []
         for j in range(len(self.nodes)):  # номер напряжения
-            if self.nodes[j].type_node != 'ИП':
+            if self.nodes[j].type_node != 'S':
                 dqi_du = self._get_dqi_du(i, j, conductivity_matrix)
                 row_qi_jm.append(dqi_du[0])
                 row_qi_jm.append(dqi_du[1])
@@ -263,7 +262,7 @@ class NewtonMethod:
         """
         jacobi_matrix = []
         for i in range(len(self.nodes)):  # номер мощности
-            if self.nodes[i].type_node != 'ИП':
+            if self.nodes[i].type_node != 'S':
                 row_pi = self._get_row_pi(i, conductivity_matrix)
                 jacobi_matrix.append(row_pi)
                 row_qi = self._get_row_qi(i, conductivity_matrix)
@@ -279,7 +278,7 @@ class NewtonMethod:
         """
         delta = []
         for i, p_imb in enumerate(power_imbalance):
-            if self.nodes[i].type_node != 'ИП':
+            if self.nodes[i].type_node != 'S':
                 delta.append(-p_imb.real)
                 delta.append(-p_imb.imag)
         delta_voltage = numpy.linalg.solve(jacobi_matrix, delta)
@@ -293,7 +292,7 @@ class NewtonMethod:
         """
         j = 0
         for i in range(len(self.nodes)):
-            if self.nodes[i].type_node != 'ИП':
+            if self.nodes[i].type_node != 'S':
                 self.nodes[i].voltage_correction(delta_voltage[j])
                 j += 1
 
