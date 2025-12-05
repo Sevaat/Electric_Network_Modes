@@ -47,14 +47,14 @@ class Branch(BaseModel):
         :return: словарь ветви
         """
         return {
-            "start": self.start.name,
-            "end": self.end.name,
-            "real_resistance": self.real_resistance,
-            "imaginary_resistance": self.imaginary_resistance,
-            "real_conductivity": self.real_conductivity,
-            "imaginary_conductivity": self.imaginary_conductivity,
-            "current": abs(self.current),
-            "real_power_losses": self.power_losses.real,
-            "imaginary_power_losses": self.power_losses.imag
+            "Node (start)": self.start.name,
+            "Node (end)": self.end.name,
+            "Real resistance, Ohm": self.real_resistance,
+            "Imaginary resistance, Ohm": self.imaginary_resistance,
+            "Real conductivity, S": self.real_conductivity,
+            "Imaginary conductivity, S": self.imaginary_conductivity,
+            "Current, A": abs(self.current) * 1000,
+            "Real power losses, MW": self.power_losses.real,
+            "Imaginary power losses, Mvar": self.power_losses.imag
         }
 

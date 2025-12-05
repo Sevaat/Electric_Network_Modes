@@ -57,13 +57,13 @@ class Node(BaseModel):
         :return: словарь узла
         """
         return {
-            "name": self.name,
-            "type_node": self.type_node,
-            "real_power": self.real_power,
-            "imaginary_power": self.imaginary_power,
-            "full_power": abs(self.full_power),
-            "real_voltage": self.real_voltage,
-            "imaginary_voltage": self.imaginary_voltage,
-            "voltage_module": abs(self.voltage),
-            "voltage_angle": atan(self.imaginary_voltage / self.real_voltage)
+            "Name": self.name,
+            "Node type (L, S, LS)": self.type_node,
+            "Real power, MW": self.real_power,
+            "Imaginary power, Mvar": self.imaginary_power,
+            "Full power, MVA": abs(self.full_power),
+            "Real voltage, kV": self.real_voltage,
+            "Imaginary voltage, kV": self.imaginary_voltage,
+            "Voltage module": abs(self.voltage),
+            "Voltage angle": atan(self.imaginary_voltage / self.real_voltage)
         }
