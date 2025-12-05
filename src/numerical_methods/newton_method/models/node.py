@@ -5,7 +5,7 @@ from math import atan
 
 
 class Node(BaseModel):
-    real_power: Union[float, int]               # активная мощность узла
+    real_power: Union[float, int]                           # активная мощность узла
     imaginary_power: Union[Union[float, int], str]          # реактивная мощность узла
     real_voltage: Union[float, int]                         # действительная часть напряжения
     imaginary_voltage: Union[float, int]                    # мнимая часть напряжения
@@ -21,6 +21,11 @@ class Node(BaseModel):
 
     @classmethod
     def conv_from_dict(cls, input_dict_node: Dict[str, Any]) -> Any:
+        """
+        Конвертация словаря входных данных
+        :param input_dict_node: словарь входных данных узла
+        :return: экземпляр узла
+        """
         new_dict_node = {'name': input_dict_node['ИМЯ'], 'type_node': input_dict_node['ТИП УЗЛА (НАГР, ИПО, ИП)'],
                          'real_power': input_dict_node['АКТ. МОЩНОСТЬ, МВт'],
                          'imaginary_power': input_dict_node['РЕАКТ. МОЩНОСТЬ, Мвар'],
