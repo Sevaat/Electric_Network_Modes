@@ -14,7 +14,7 @@ class Node(BaseModel):
     name: str  # имя узла
 
     @classmethod
-    def from_dict(cls, dict_node: Dict[str, Any]) -> Self:
+    def from_dict(cls, dict_node: Dict[str, Any]) -> Any:
         """
         Конвертировать словаря входных данных узла
         :param dict_node: словарь входных данных узла

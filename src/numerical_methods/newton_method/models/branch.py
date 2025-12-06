@@ -1,6 +1,6 @@
-from typing import Union, Dict, Any, Optional, Type, TypeVar, Self
+from typing import Union, Dict, Any, Optional, Self
 
-from pydantic import ValidationError, BaseModel
+from pydantic import BaseModel
 
 from src.numerical_methods.newton_method.models.node import Node
 
@@ -18,7 +18,7 @@ class Line(BaseModel):
     power_losses: Optional[complex] = None  # потери в линии
 
     @classmethod
-    def from_dict(cls, dict_line: Dict[str, Any]) -> Self:
+    def from_dict(cls, dict_line: Dict[str, Any]) -> Any:
         """
         Конвертировать словаря входных данных линии электропередачи
         :param dict_line: словарь входных данных линии электропередачи
@@ -79,7 +79,7 @@ class T2(BaseModel):
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на СН
 
     @classmethod
-    def from_dict(cls, dict_t2: Dict[str, Any]) -> Self:
+    def from_dict(cls, dict_t2: Dict[str, Any]) -> Any:
         """
         Конвертировать словаря входных данных двухобмоточного трансформатора
         :param dict_t2: словарь входных данных двухобмоточного трансформатора
@@ -150,7 +150,7 @@ class T3(BaseModel):
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на НН
 
     @classmethod
-    def from_dict(cls, dict_t3: Dict[str, Any]) -> Self:
+    def from_dict(cls, dict_t3: Dict[str, Any]) -> Any:
         """
         Конвертировать словаря входных данных трехобмоточного трансформатора
         :param dict_t3: словарь входных данных трехобмоточного трансформатора

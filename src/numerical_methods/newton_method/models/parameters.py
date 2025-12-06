@@ -1,4 +1,4 @@
-from typing import Union, Dict, Any, Self
+from typing import Union, Dict, Any
 
 from pydantic import BaseModel, Field
 
@@ -12,7 +12,7 @@ class Parameters(BaseModel):
     iterations: int = Field(gt=0, le=1000000)                               # количество итераций
 
     @classmethod
-    def from_dict(cls, dict_param: Dict[str, Any]) -> Self:
+    def from_dict(cls, dict_param: Dict[str, Any]) -> Any:
         """
         Конвертировать словаря входных данных параметров
         :param dict_param: словарь входных данных параметров

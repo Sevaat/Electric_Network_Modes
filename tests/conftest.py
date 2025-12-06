@@ -4,61 +4,52 @@ import pytest
 @pytest.fixture
 def test_data():
     return {
-        "nodes": [
+        "NODES": [
             {
-                "name": "1",
-                "type_node": "ИП",
-                "real_power": 0,
-                "imaginary_power": 0,
-                "real_voltage": 115,
-                "imaginary_voltage": 0
+                "Name": "1",
+                "Node type (L, S, LS)": "S",
+                "Power, MVA": {'Real': 0, 'Imaginary': 0 },
+                "Voltage, kV": { 'Real': 115, 'Imaginary': 0 }
             },
             {
-                "name": "2",
-                "type_node": "ИПО",
-                "real_power": 28.8675,
-                "imaginary_power": 17.3205,
-                "real_voltage": 110,
-                "imaginary_voltage": 0
+                "Name": "2",
+                "Node type (L, S, LS)": "LS",
+                "Power, MVA": {'Real': 28.8675, 'Imaginary': 17.3205},
+                "Voltage, kV": {'Real': 110, 'Imaginary': 0}
             },
             {
-                "name": "3",
-                "type_node": "НАГР",
-                "real_power": 46.188,
-                "imaginary_power": 23.094,
-                "real_voltage": 110,
-                "imaginary_voltage": 0
+                "Name": "3",
+                "Node type (L, S, LS)": "L",
+                "Power, MVA": {'Real': 46.188, 'Imaginary': 23.094},
+                "Voltage, kV": {'Real': 110, 'Imaginary': 0}
             }
         ],
-        "branches": [
+        "BRANCHES": [
             {
-                "start": "1",
-                "end": "2",
-                "real_resistance": 10,
-                "imaginary_resistance": 20,
-                "real_conductivity": 0,
-                "imaginary_conductivity": 0
+                "Type (LINE, T2, T3)": "Line",
+                "Node (start)": "1",
+                "Node (end)": "2",
+                "Impedance, Ohm": {'Real': 10, "Imaginary": 20},
+                "Conductivity, S": {'Real': 0, "Imaginary": 0}
             },
             {
-                "start": "1",
-                "end": "3",
-                "real_resistance": 15,
-                "imaginary_resistance": 30,
-                "real_conductivity": 0,
-                "imaginary_conductivity": 0
+                "Type (LINE, T2, T3)": "Line",
+                "Node (start)": "1",
+                "Node (end)": "3",
+                "Impedance, Ohm": {'Real': 15, "Imaginary": 30},
+                "Conductivity, S": {'Real': 0, "Imaginary": 0}
             },
             {
-                "start": "2",
-                "end": "3",
-                "real_resistance": 10,
-                "imaginary_resistance": 25,
-                "real_conductivity": 0,
-                "imaginary_conductivity": 0
+                "Type (LINE, T2, T3)": "Line",
+                "Node (start)": "2",
+                "Node (end)": "3",
+                "Impedance, Ohm": {'Real': 10, "Imaginary": 25},
+                "Conductivity, S": {'Real': 0, "Imaginary": 0}
             }
         ],
-        "parameters": {
-            "nominal_voltage": 110,
-            "accuracy": 0.001,
-            "iterations": 100
+        "PARAMETERS": {
+            "Nominal voltage, kV": 110,
+            "Accuracy": 0.001,
+            "Max iterations": 100
         }
     }
