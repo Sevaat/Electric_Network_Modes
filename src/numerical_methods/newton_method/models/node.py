@@ -5,51 +5,46 @@ from math import atan
 
 
 class Node(BaseModel):
-    real_power: Union[float, int]                           # активная мощность узла
-    imaginary_power: Union[Union[float, int], str]          # реактивная мощность узла
-    real_voltage: Union[float, int]                         # действительная часть напряжения
-    imaginary_voltage: Union[float, int]                    # мнимая часть напряжения
-    type_node: str                                          # тип узла
-    name: str                                               # имя узла
-
-    def __init__(self, node: Dict[str, Any], **data: Any) -> None:
-        for key in vars(self):
-            if key not in node:
-                raise ValidationError
-        node.update(data)
-        super().__init__(**node)
+    """
+    Класс представляющий параметры узла электрической сети
+    """
+    power: complex  # мощность узла
+    voltage: complex  # напряжение в узле
+    type_node: str  # тип узла
+    name: str  # имя узла
 
     @classmethod
-    def conv_from_dict(cls, input_dict_node: Dict[str, Any]) -> Any:
+    def from_dict(cls, dict_node: Dict[str, Any]) -> Self:
         """
-        Конвертация словаря входных данных
-        :param input_dict_node: словарь входных данных узла
+        Конвертировать словаря входных данных узла
+        :param dict_node: словарь входных данных узла
         :return: экземпляр узла
         """
-        new_dict_node = {'name': input_dict_node['Name'],
-                         'type_node': input_dict_node['Node type (L, S, LS)'],
-                         'real_power': input_dict_node['Real power, MW'],
-                         'imaginary_power': input_dict_node['Imaginary power, Mvar'],
-                         'real_voltage': input_dict_node['Real voltage, kV'],
-                         'imaginary_voltage': input_dict_node['Imaginary voltage, kV']}
-        return cls(new_dict_node)
+        name = dict_node['Name']
+        type_node = dict_node['Node type (L, S, LS)']
+        power: complex
+        if type_node == 'S':
+            power = complex(0, 0)
+        else:
+            power = complex(dict_node['Power, MVA']['Real'], dict_node['Power, MVA']['Imaginary'])
+        voltage = complex(dict_node['Voltage, kV']['Real'], dict_node['Voltage, kV']['Imaginary'])
+        return cls(name=name,
+                   type_node=type_node,
+                   power=power,
+                   voltage=voltage)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Node):
             raise TypeError
         return self.name == other.name
 
-    @property
-    def full_power(self) -> complex:
-        return complex(self.real_power, self.imaginary_power)
-
-    @property
-    def voltage(self) -> complex:
-        return complex(self.real_voltage, self.imaginary_voltage)
-
     def voltage_correction(self, delta_voltage: complex) -> None:
-        self.real_voltage += delta_voltage.real
-        self.imaginary_voltage += delta_voltage.imag
+        """
+        Корректировать напряжение в узле
+        :param delta_voltage: приращение уровня напряжения в узле
+        :return: None
+        """
+        self.voltage = complex(self.voltage.real + delta_voltage.real, self.voltage.imag + delta_voltage.imag)
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -59,11 +54,17 @@ class Node(BaseModel):
         return {
             "Name": self.name,
             "Node type (L, S, LS)": self.type_node,
-            "Real power, MW": self.real_power,
-            "Imaginary power, Mvar": self.imaginary_power,
-            "Full power, MVA": abs(self.full_power),
-            "Real voltage, kV": self.real_voltage,
-            "Imaginary voltage, kV": self.imaginary_voltage,
-            "Voltage module": abs(self.voltage),
-            "Voltage angle": atan(self.imaginary_voltage / self.real_voltage)
+            "Power, MVA":
+                {
+                    'Real': self.power.real,
+                    'Imaginary': self.power.imag,
+                    'Magnitude': abs(self.power)
+                },
+            "Voltage, kV":
+                {
+                    'Real': self.power.real,
+                    'Imaginary': self.power.imag,
+                    'Magnitude': abs(self.power),
+                    'Angle': atan(self.imaginary_voltage / self.real_voltage)
+                }
         }

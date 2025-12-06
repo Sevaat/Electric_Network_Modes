@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Union, Tuple, Optional
 
 import numpy
 
-from src.numerical_methods.newton_method.models.branch import Branch
+from src.numerical_methods.newton_method.models.branch import Line, T2, T3
 from src.numerical_methods.newton_method.models.node import Node
 from src.numerical_methods.newton_method.models.parameters import Parameters
 
@@ -18,21 +18,9 @@ class NewtonMethod:
 
     def __init__(self):
         data = self._load()
-        self.nodes = [Node.conv_from_dict(node) for node in data['NODES']]
-
-        # if 'TRANSFORMERS' in data:
-        #     for transformer in data['TRANSFORMERS']:
-        #         for node in self.nodes:
-        #             if not isinstance(transformer['Node (HV)'], Node):
-        #                 if transformer['Node (HV)'] == node.name:
-        #                     transformer['Node (HV)'] = node
-        #             if not isinstance(transformer['Node (LV)'], Node):
-        #                 if transformer['Node (LV)'] == node.name:
-        #                     transformer['Node (LV)'] = node
-        #     self.branches = [Branch.conv_from_dict(branch) for branch in data['BRANCHES']]
-
-        if 'BRANCHES' in data:
-            for branch in data['BRANCHES']:
+        self.nodes = [Node.from_dict(node) for node in data['NODES']]
+        for branch in data['BRANCHES']:
+            if branch['Type (LINE, T2, T3)'] == 'Line':
                 for node in self.nodes:
                     if not isinstance(branch['Node (start)'], Node):
                         if branch['Node (start)'] == node.name:
@@ -40,8 +28,28 @@ class NewtonMethod:
                     if not isinstance(branch['Node (end)'], Node):
                         if branch['Node (end)'] == node.name:
                             branch['Node (end)'] = node
-            self.branches = [Branch.conv_from_dict(branch) for branch in data['BRANCHES']]
-        self.parameters = Parameters.conv_from_dict(data['PARAMETERS'])
+            if branch['Type (LINE, T2, T3)'] == 'T2' or branch['Type (LINE, T2, T3)'] == 'T3':
+                for node in self.nodes:
+                    if not isinstance(branch['Node (HV)'], Node):
+                        if branch['Node (HV)'] == node.name:
+                            branch['Node (HV)'] = node
+                    if not isinstance(branch['Node (LV)'], Node):
+                        if branch['Node (LV)'] == node.name:
+                            branch['Node (LV)'] = node
+                    if branch['Type (LINE, T2, T3)'] == 'T3':
+                        if not isinstance(branch['Node (MV)'], Node):
+                            if branch['Node (MV)'] == node.name:
+                                branch['Node (MV)'] = node
+        branches = []
+        for branch in data['BRANCHES']:
+            if branch['Type (LINE, T2, T3)'] == 'Line':
+                self.branches.append(Line.from_dict(branch))
+            if branch['Type (LINE, T2, T3)'] == 'T2':
+                self.branches.append(T2.from_dict(branch))
+            if branch['Type (LINE, T2, T3)'] == 'T3':
+                self.branches.append(T3.from_dict(branch))
+        self.branches = branches
+        self.parameters = Parameters.from_dict(data['PARAMETERS'])
 
     @staticmethod
     def _load() -> Dict[str, Any]:
