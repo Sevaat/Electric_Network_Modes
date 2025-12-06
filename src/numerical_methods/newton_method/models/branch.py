@@ -1,9 +1,8 @@
-from typing import Union, Dict, Any, Optional, Self
+from typing import Union, Dict, Any, Optional, Self, List
 
 from pydantic import BaseModel
 
 from src.numerical_methods.newton_method.models.node import Node
-
 
 class Line(BaseModel):
     """
@@ -18,13 +17,21 @@ class Line(BaseModel):
     power_losses: Optional[complex] = None  # потери в линии
 
     @classmethod
-    def from_dict(cls, dict_line: Dict[str, Any]) -> Any:
+    def from_dict(cls, dict_line: Dict[str, Any], nodes: List[Node]) -> Any:
         """
         Конвертировать словаря входных данных линии электропередачи
+        :param nodes: список узлов
         :param dict_line: словарь входных данных линии электропередачи
         :return: экземпляр линии электропередачи
         """
-        type_branch = dict_line['Type (LINE, T2, T3)']
+        key_nodes = ['Node (start)', 'Node (end)']
+        for node in nodes:
+            for key_node in key_nodes:
+                if not isinstance(dict_line[key_node], Node):
+                    if dict_line[key_node] == node.name:
+                        dict_line[key_node] = node
+
+        type_branch = dict_line['Type (Line, T2, T3)']
         high = dict_line['Node (start)']
         low = dict_line['Node (end)']
         impedance = complex(dict_line['Impedance, Ohm']['Real'],
@@ -43,7 +50,7 @@ class Line(BaseModel):
         :return: словарь ветви
         """
         return {
-            "Type (LINE, T2, T3)": self.type_branch,
+            "Type (Line, T2, T3)": self.type_branch,
             "Node (start)": self.start.name,
             "Node (end)": self.end.name,
             "Impedance, Ohm":
@@ -65,7 +72,7 @@ class Line(BaseModel):
         }
 
 
-class T2(BaseModel):
+class Transformer2(BaseModel):
     """
     Класс представляющий параметры схемы замещения двухобмоточного трансформатора
     """
@@ -79,13 +86,21 @@ class T2(BaseModel):
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на СН
 
     @classmethod
-    def from_dict(cls, dict_t2: Dict[str, Any]) -> Any:
+    def from_dict(cls, dict_t2: Dict[str, Any], nodes: List[Node]) -> Any:
         """
         Конвертировать словаря входных данных двухобмоточного трансформатора
+        :param nodes: список узлов
         :param dict_t2: словарь входных данных двухобмоточного трансформатора
         :return: экземпляр двухобмоточного трансформатора
         """
-        type_branch = dict_t2['Type (LINE, T2, T3)']
+        key_nodes = ['Node (HV)', 'Node (LV)']
+        for node in nodes:
+            for key_node in key_nodes:
+                if not isinstance(dict_t2[key_node], Node):
+                    if dict_t2[key_node] == node.name:
+                        dict_t2[key_node] = node
+
+        type_branch = dict_t2['Type (Line, T2, T3)']
         high = dict_t2['Node (HV)']
         low = dict_t2['Node (LV)']
         impedance = complex(dict_t2['Impedance, Ohm']['Real'],
@@ -106,7 +121,7 @@ class T2(BaseModel):
         :return: словарь трансформатора
         """
         return {
-            "Type (LINE, T2, T3)": self.type_branch,
+            "Type (Line, T2, T3)": self.type_branch,
             "Node (HV)": self.high.name,
             "Node (LV)": self.low.name,
             "Impedance, Ohm":
@@ -128,7 +143,7 @@ class T2(BaseModel):
             "Transformation ratio HV-LV": self.tr_rat_high_low
         }
 
-class T3(BaseModel):
+class Transformer3(BaseModel):
     """
     Класс представляющий параметры схемы замещения трехобмоточного трансформатора
     """
@@ -150,12 +165,20 @@ class T3(BaseModel):
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на НН
 
     @classmethod
-    def from_dict(cls, dict_t3: Dict[str, Any]) -> Any:
+    def from_dict(cls, dict_t3: Dict[str, Any], nodes: List[Node]) -> Any:
         """
         Конвертировать словаря входных данных трехобмоточного трансформатора
+        :param nodes: список узлов
         :param dict_t3: словарь входных данных трехобмоточного трансформатора
         :return: экземпляр трехобмоточного трансформатора
         """
+        key_nodes = ['Node (HV)', 'Node (MV)', 'Node (LV)']
+        for node in nodes:
+            for key_node in key_nodes:
+                if not isinstance(dict_t3[key_node], Node):
+                    if dict_t3[key_node] == node.name:
+                        dict_t3[key_node] = node
+
         type_branch = dict_t3['Type (LINE, T2, T3)']
         high = dict_t3['Node (HV)']
         high_impedance = complex(dict_t3['High_impedance, Ohm']['Real'],
@@ -187,7 +210,7 @@ class T3(BaseModel):
         :return: словарь трансформатора
         """
         return {
-            "Type (LINE, T2, T3)": self.type_branch,
+            "Type (Line, T2, T3)": self.type_branch,
             "Node (HV)": self.high.name,
             "Node (MV)": self.middle.name,
             "Node (LV)": self.low.name,
@@ -235,3 +258,24 @@ class T3(BaseModel):
                 },
             "Transformation ratio HV-LV": self.tr_rat_high_low
         }
+
+def new_branch(dict_branch: Dict[str, Any], nodes: List[Node]) -> Line | Transformer2 | Transformer3 | None:
+    """
+    Собрать новую ветвь по типу
+    :param dict_branch: словарь ветви, проверяется ключ Type (LINE, T2, T3)
+    :param nodes: список узлов
+    :return: линия, т2, т3 или None
+    """
+    if 'Type (Line, T2, T3)' not in dict_branch.keys():
+        raise KeyError
+    if dict_branch['Type (Line, T2, T3)'] not in ['Line', 'T2', 'T3']:
+        raise ValueError
+
+    if dict_branch['Type (Line, T2, T3)'] == 'Line':
+        return Line.from_dict(dict_branch, nodes)
+    elif dict_branch['Type (Line, T2, T3)'] == 'T2':
+        return Transformer2.from_dict(dict_branch, nodes)
+    elif dict_branch['Type (Line, T2, T3)'] == 'T3':
+        return Transformer3.from_dict(dict_branch, nodes)
+    return None
+

@@ -26,21 +26,21 @@ def test_data():
         ],
         "BRANCHES": [
             {
-                "Type (LINE, T2, T3)": "Line",
+                "Type (Line, T2, T3)": "Line",
                 "Node (start)": "1",
                 "Node (end)": "2",
                 "Impedance, Ohm": {'Real': 10, "Imaginary": 20},
                 "Conductivity, S": {'Real': 0, "Imaginary": 0}
             },
             {
-                "Type (LINE, T2, T3)": "Line",
+                "Type (Line, T2, T3)": "Line",
                 "Node (start)": "1",
                 "Node (end)": "3",
                 "Impedance, Ohm": {'Real': 15, "Imaginary": 30},
                 "Conductivity, S": {'Real': 0, "Imaginary": 0}
             },
             {
-                "Type (LINE, T2, T3)": "Line",
+                "Type (Line, T2, T3)": "Line",
                 "Node (start)": "2",
                 "Node (end)": "3",
                 "Impedance, Ohm": {'Real': 10, "Imaginary": 25},
