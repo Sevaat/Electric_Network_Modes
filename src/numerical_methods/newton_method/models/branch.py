@@ -1,74 +1,70 @@
-from typing import Union, Dict, Any, Optional, Self, List
+from typing import Any, Dict, List, Optional, Self, Union
 
 from pydantic import BaseModel
 
 from src.numerical_methods.newton_method.models.node import Node
 
+
 class Line(BaseModel):
     """
     Класс представляющий параметры схемы замещения линии электропередачи
     """
+
     type_branch: str  # тип ветви
-    high: Node  # имя стартового узла ветви
-    low: Node  # имя конечного узла ветви
+    start: Node  # имя стартового узла ветви
+    end: Node  # имя конечного узла ветви
     impedance: complex  # сопротивление (активное, реактивное)
     conductivity: complex  # проводимость (активная, реактивная)
     current: Optional[complex] = None  # ток в линии
     power_losses: Optional[complex] = None  # потери в линии
 
     @classmethod
-    def from_dict(cls, dict_line: Dict[str, Any], nodes: List[Node]) -> Any:
+    def from_dict(cls, dict_line: Dict[str, Any], nodes: List[Node]) -> Self:
         """
         Конвертировать словаря входных данных линии электропередачи
         :param nodes: список узлов
         :param dict_line: словарь входных данных линии электропередачи
         :return: экземпляр линии электропередачи
         """
-        key_nodes = ['Node (start)', 'Node (end)']
+        key_nodes = ["Node (start)", "Node (end)"]
         for node in nodes:
             for key_node in key_nodes:
                 if not isinstance(dict_line[key_node], Node):
                     if dict_line[key_node] == node.name:
                         dict_line[key_node] = node
 
-        type_branch = dict_line['Type (Line, T2, T3)']
-        high = dict_line['Node (start)']
-        low = dict_line['Node (end)']
-        impedance = complex(dict_line['Impedance, Ohm']['Real'],
-                                 dict_line['Impedance, Ohm']['Imaginary'])
-        conductivity = complex(dict_line['Conductivity, S']['Real'],
-                                    dict_line['Conductivity, S']['Imaginary'])
-        return cls(type_branch=type_branch,
-                   high=high,
-                   low=low,
-                   impedance=impedance,
-                   conductivity=conductivity)
+        type_branch = dict_line["Type (Line, T2, T3)"]
+        start = dict_line["Node (start)"]
+        end = dict_line["Node (end)"]
+        impedance = complex(dict_line["Impedance, Ohm"]["Real"], dict_line["Impedance, Ohm"]["Imaginary"])
+        conductivity = complex(dict_line["Conductivity, S"]["Real"], dict_line["Conductivity, S"]["Imaginary"])
+        return cls(type_branch=type_branch, start=start, end=end, impedance=impedance, conductivity=conductivity)
 
     def to_dict(self) -> Dict[str, Any]:
         """
         Представление данных ветви в виде словаря
         :return: словарь ветви
         """
+        current = None
+        real_power_losses = None
+        imag_power_losses = None
+        if isinstance(self.current, complex):
+            current = abs(self.current) * 1000
+        else:
+            raise TypeError
+        if isinstance(self.power_losses, complex):
+            real_power_losses = self.power_losses.real
+            imag_power_losses = self.power_losses.imag
+        else:
+            raise TypeError
         return {
             "Type (Line, T2, T3)": self.type_branch,
             "Node (start)": self.start.name,
             "Node (end)": self.end.name,
-            "Impedance, Ohm":
-                {
-                    'Real': self.impedance.real,
-                    'Imaginary': self.impedance.imag
-                },
-            "Conductivity, S":
-                {
-                    'Real': self.conductivity.real,
-                    'Imaginary': self.conductivity.imag
-                },
-            "Current, A": abs(self.current) * 1000,
-            "Power losses, MVA":
-                {
-                    'Real': self.power_losses.real,
-                    'Imaginary': self.power_losses.imag
-                }
+            "Impedance, Ohm": {"Real": self.impedance.real, "Imaginary": self.impedance.imag},
+            "Conductivity, S": {"Real": self.conductivity.real, "Imaginary": self.conductivity.imag},
+            "Current, A": current,
+            "Power losses, MVA": {"Real": real_power_losses, "Imaginary": imag_power_losses},
         }
 
 
@@ -76,6 +72,7 @@ class Transformer2(BaseModel):
     """
     Класс представляющий параметры схемы замещения двухобмоточного трансформатора
     """
+
     type_branch: str  # тип ветви
     high: Node  # имя узла высшей стороны
     low: Node  # имя узла низшей стороны
@@ -86,74 +83,76 @@ class Transformer2(BaseModel):
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на СН
 
     @classmethod
-    def from_dict(cls, dict_t2: Dict[str, Any], nodes: List[Node]) -> Any:
+    def from_dict(cls, dict_t2: Dict[str, Any], nodes: List[Node]) -> Self:
         """
         Конвертировать словаря входных данных двухобмоточного трансформатора
         :param nodes: список узлов
         :param dict_t2: словарь входных данных двухобмоточного трансформатора
         :return: экземпляр двухобмоточного трансформатора
         """
-        key_nodes = ['Node (HV)', 'Node (LV)']
+        key_nodes = ["Node (HV)", "Node (LV)"]
         for node in nodes:
             for key_node in key_nodes:
                 if not isinstance(dict_t2[key_node], Node):
                     if dict_t2[key_node] == node.name:
                         dict_t2[key_node] = node
 
-        type_branch = dict_t2['Type (Line, T2, T3)']
-        high = dict_t2['Node (HV)']
-        low = dict_t2['Node (LV)']
-        impedance = complex(dict_t2['Impedance, Ohm']['Real'],
-                                 dict_t2['Impedance, Ohm']['Imaginary'])
-        conductivity = complex(dict_t2['Conductivity, S']['Real'],
-                                    dict_t2['Conductivity, S']['Imaginary'])
-        tr_rat_high_low = dict_t2['Transformation ratio HV-LV']
-        return cls(type_branch=type_branch,
-                   high=high,
-                   low=low,
-                   impedance=impedance,
-                   conductivity=conductivity,
-                   tr_rat_high_low=tr_rat_high_low)
+        type_branch = dict_t2["Type (Line, T2, T3)"]
+        high = dict_t2["Node (HV)"]
+        low = dict_t2["Node (LV)"]
+        impedance = complex(dict_t2["Impedance, Ohm"]["Real"], dict_t2["Impedance, Ohm"]["Imaginary"])
+        conductivity = complex(dict_t2["Conductivity, S"]["Real"], dict_t2["Conductivity, S"]["Imaginary"])
+        tr_rat_high_low = dict_t2["Transformation ratio HV-LV"]
+        return cls(
+            type_branch=type_branch,
+            high=high,
+            low=low,
+            impedance=impedance,
+            conductivity=conductivity,
+            tr_rat_high_low=tr_rat_high_low,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """
         Представление данных двухобмоточного трансформатора в виде словаря
         :return: словарь трансформатора
         """
+        current = None
+        real_power_losses = None
+        imag_power_losses = None
+        if isinstance(self.current, complex):
+            current = abs(self.current) * 1000
+        else:
+            raise TypeError
+        if isinstance(self.power_losses, complex):
+            real_power_losses = self.power_losses.real
+            imag_power_losses = self.power_losses.imag
+        else:
+            raise TypeError
         return {
             "Type (Line, T2, T3)": self.type_branch,
             "Node (HV)": self.high.name,
             "Node (LV)": self.low.name,
-            "Impedance, Ohm":
-                {
-                    'Real': self.impedance.real,
-                    'Imaginary': self.impedance.imag
-                },
-            "Conductivity, S":
-                {
-                    'Real': self.conductivity.real,
-                    'Imaginary': self.conductivity.imag
-                },
-            "Current, A": abs(self.high_current) * 1000,
-            "Power losses, MVA":
-                {
-                    'Real': self.power_losses.real,
-                    'Imaginary': self.power_losses.imag
-                },
-            "Transformation ratio HV-LV": self.tr_rat_high_low
+            "Impedance, Ohm": {"Real": self.impedance.real, "Imaginary": self.impedance.imag},
+            "Conductivity, S": {"Real": self.conductivity.real, "Imaginary": self.conductivity.imag},
+            "Current, A": current,
+            "Power losses, MVA": {"Real": real_power_losses, "Imaginary": imag_power_losses},
+            "Transformation ratio HV-LV": self.tr_rat_high_low,
         }
+
 
 class Transformer3(BaseModel):
     """
     Класс представляющий параметры схемы замещения трехобмоточного трансформатора
     """
+
     type_branch: str  # тип ветви
     high: Node  # имя узла высшей стороны
     high_impedance: complex  # сопротивление ВН (активное, реактивное)
     high_conductivity: complex  # проводимость ВН (активная, реактивная)
     high_current: Optional[complex] = None  # ток ВН
     high_power_losses: Optional[complex] = None  # потери ВН
-    middle: Optional[Node]  # имя узла средней стороны
+    middle: Node  # имя узла средней стороны
     middle_impedance: complex  # сопротивление ВН (активное, реактивное)
     middle_current: Optional[complex] = None  # ток в средней стороны
     middle_power_losses: Optional[complex] = None  # потери в высшей стороны
@@ -163,119 +162,143 @@ class Transformer3(BaseModel):
     low_power_losses: Optional[complex] = None  # потери в высшей стороны
     tr_rat_high_middle: Union[float, int]  # коэффициент трансформации с ВН на СН
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на НН
+    neutral_node: Optional[Node] = None  # имя нейтрального трансформаторного узла
 
     @classmethod
-    def from_dict(cls, dict_t3: Dict[str, Any], nodes: List[Node]) -> Any:
+    def from_dict(cls, dict_t3: Dict[str, Any], nodes: List[Node]) -> Self:
         """
         Конвертировать словаря входных данных трехобмоточного трансформатора
         :param nodes: список узлов
         :param dict_t3: словарь входных данных трехобмоточного трансформатора
         :return: экземпляр трехобмоточного трансформатора
         """
-        key_nodes = ['Node (HV)', 'Node (MV)', 'Node (LV)']
+        key_nodes = ["Node (HV)", "Node (MV)", "Node (LV)"]
         for node in nodes:
             for key_node in key_nodes:
                 if not isinstance(dict_t3[key_node], Node):
                     if dict_t3[key_node] == node.name:
                         dict_t3[key_node] = node
 
-        type_branch = dict_t3['Type (LINE, T2, T3)']
-        high = dict_t3['Node (HV)']
-        high_impedance = complex(dict_t3['High_impedance, Ohm']['Real'],
-                                      dict_t3['High_impedance, Ohm']['Imaginary'])
-        high_conductivity = complex(dict_t3['High_conductivity, S']['Real'],
-                                         dict_t3['High_conductivity, S']['Imaginary'])
-        middle = dict_t3['Node (MV)']
-        middle_impedance = complex(dict_t3['Middle_impedance, Ohm']['Real'],
-                                        dict_t3['Middle_impedance, Ohm']['Imaginary'])
-        low = dict_t3['Node (LV)']
-        low_impedance = complex(dict_t3['Low_impedance, Ohm']['Real'],
-                                     dict_t3['Low_impedance, Ohm']['Imaginary'])
-        tr_rat_high_middle = dict_t3['Transformation ratio HV-MV']
-        tr_rat_high_low = dict_t3['Transformation ratio HV-LV']
-        return cls(type_branch=type_branch,
-                   high=high,
-                   high_impedance=high_impedance,
-                   high_conductivity=high_conductivity,
-                   middle=middle,
-                   middle_impedance=middle_impedance,
-                   low=low,
-                   low_impedance=low_impedance,
-                   tr_rat_high_middle=tr_rat_high_middle,
-                   tr_rat_high_low=tr_rat_high_low)
+        type_branch = dict_t3["Type (LINE, T2, T3)"]
+        high = dict_t3["Node (HV)"]
+        high_impedance = complex(dict_t3["High_impedance, Ohm"]["Real"], dict_t3["High_impedance, Ohm"]["Imaginary"])
+        high_conductivity = complex(
+            dict_t3["High_conductivity, S"]["Real"], dict_t3["High_conductivity, S"]["Imaginary"]
+        )
+        middle = dict_t3["Node (MV)"]
+        middle_impedance = complex(
+            dict_t3["Middle_impedance, Ohm"]["Real"], dict_t3["Middle_impedance, Ohm"]["Imaginary"]
+        )
+        low = dict_t3["Node (LV)"]
+        low_impedance = complex(dict_t3["Low_impedance, Ohm"]["Real"], dict_t3["Low_impedance, Ohm"]["Imaginary"])
+        tr_rat_high_middle = dict_t3["Transformation ratio HV-MV"]
+        tr_rat_high_low = dict_t3["Transformation ratio HV-LV"]
+        return cls(
+            type_branch=type_branch,
+            high=high,
+            high_impedance=high_impedance,
+            high_conductivity=high_conductivity,
+            middle=middle,
+            middle_impedance=middle_impedance,
+            low=low,
+            low_impedance=low_impedance,
+            tr_rat_high_middle=tr_rat_high_middle,
+            tr_rat_high_low=tr_rat_high_low,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """
         Представление данных трехобмоточного трансформатора в виде словаря
         :return: словарь трансформатора
         """
+        high_current = None
+        middle_current = None
+        low_current = None
+        high_real_power_losses = None
+        high_imag_power_losses = None
+        middle_real_power_losses = None
+        middle_imag_power_losses = None
+        low_real_power_losses = None
+        low_imag_power_losses = None
+        if isinstance(self.high_current, complex):
+            high_current = abs(self.high_current) * 1000
+        else:
+            raise TypeError
+        if isinstance(self.middle_current, complex):
+            middle_current = abs(self.middle_current) * 1000
+        else:
+            raise TypeError
+        if isinstance(self.low_current, complex):
+            low_current = abs(self.low_current) * 1000
+        else:
+            raise TypeError
+        if isinstance(self.high_power_losses, complex):
+            high_real_power_losses = self.high_power_losses.real
+            high_imag_power_losses = self.high_power_losses.imag
+        else:
+            raise TypeError
+        if isinstance(self.middle_power_losses, complex):
+            middle_real_power_losses = self.middle_power_losses.real
+            middle_imag_power_losses = self.middle_power_losses.imag
+        else:
+            raise TypeError
+        if isinstance(self.low_power_losses, complex):
+            low_real_power_losses = self.low_power_losses.real
+            low_imag_power_losses = self.low_power_losses.imag
+        else:
+            raise TypeError
         return {
             "Type (Line, T2, T3)": self.type_branch,
             "Node (HV)": self.high.name,
             "Node (MV)": self.middle.name,
             "Node (LV)": self.low.name,
-
-            "High impedance, Ohm":
-                {
-                    'Real': self.high_impedance.real,
-                    'Imaginary': self.high_impedance.imag
-                },
-            "High conductivity, S":
-                {
-                    'Real': self.high_conductivity.real,
-                    'Imaginary': self.high_conductivity.imag
-                },
-            "High current, A": abs(self.high_current) * 1000,
-            "High power losses, MVA":
-                {
-                    'Real': self.high_power_losses.real,
-                    'Imaginary': self.high_power_losses.imag
-                },
-
-            "Middle impedance, Ohm":
-                {
-                    'Real': self.middle_impedance.real,
-                    'Imaginary': self.middle_impedance.imag
-                },
-            "Middle current, A": abs(self.middle_current) * 1000,
-            "Middle power losses, MVA":
-                {
-                    'Real': self.middle_power_losses.real,
-                    'Imaginary': self.middle_power_losses.imag
-                },
+            "High impedance, Ohm": {"Real": self.high_impedance.real, "Imaginary": self.high_impedance.imag},
+            "High conductivity, S": {"Real": self.high_conductivity.real, "Imaginary": self.high_conductivity.imag},
+            "High current, A": high_current,
+            "High power losses, MVA": {"Real": high_real_power_losses, "Imaginary": high_imag_power_losses},
+            "Middle impedance, Ohm": {"Real": self.middle_impedance.real, "Imaginary": self.middle_impedance.imag},
+            "Middle current, A": middle_current,
+            "Middle power losses, MVA": {"Real": middle_real_power_losses, "Imaginary": middle_imag_power_losses},
             "Transformation ratio HV-MV": self.tr_rat_high_middle,
-
-            "Low impedance, Ohm":
-                {
-                    'Real': self.low_impedance.real,
-                    'Imaginary': self.low_impedance.imag
-                },
-            "Low current, A": abs(self.low_current) * 1000,
-            "Low power losses, MVA":
-                {
-                    'Real': self.low_power_losses.real,
-                    'Imaginary': self.low_power_losses.imag
-                },
-            "Transformation ratio HV-LV": self.tr_rat_high_low
+            "Low impedance, Ohm": {"Real": self.low_impedance.real, "Imaginary": self.low_impedance.imag},
+            "Low current, A": low_current,
+            "Low power losses, MVA": {"Real": low_real_power_losses, "Imaginary": low_imag_power_losses},
+            "Transformation ratio HV-LV": self.tr_rat_high_low,
         }
 
-def new_branch(dict_branch: Dict[str, Any], nodes: List[Node]) -> Line | Transformer2 | Transformer3 | None:
+    @property
+    def power_losses(self) -> complex:
+        """
+        Получить полные потери в ветвях трансформатора T3
+        :return: потери мощности
+        """
+        if (
+            isinstance(self.high_power_losses, complex)
+            and isinstance(self.middle_power_losses, complex)
+            and isinstance(self.low_power_losses, complex)
+        ):
+            return sum([self.high_power_losses, self.middle_power_losses, self.low_power_losses])
+        else:
+            raise TypeError
+
+
+def new_branch(dict_branch: Dict[str, Any], nodes: List[Node]) -> Line | Transformer2 | Transformer3:
     """
     Собрать новую ветвь по типу
     :param dict_branch: словарь ветви, проверяется ключ Type (LINE, T2, T3)
     :param nodes: список узлов
     :return: линия, т2, т3 или None
     """
-    if 'Type (Line, T2, T3)' not in dict_branch.keys():
+    if "Type (Line, T2, T3)" not in dict_branch.keys():
         raise KeyError
-    if dict_branch['Type (Line, T2, T3)'] not in ['Line', 'T2', 'T3']:
+    if dict_branch["Type (Line, T2, T3)"] not in ["Line", "T2", "T3"]:
         raise ValueError
 
-    if dict_branch['Type (Line, T2, T3)'] == 'Line':
+    if dict_branch["Type (Line, T2, T3)"] == "Line":
         return Line.from_dict(dict_branch, nodes)
-    elif dict_branch['Type (Line, T2, T3)'] == 'T2':
+    elif dict_branch["Type (Line, T2, T3)"] == "T2":
         return Transformer2.from_dict(dict_branch, nodes)
-    elif dict_branch['Type (Line, T2, T3)'] == 'T3':
+    elif dict_branch["Type (Line, T2, T3)"] == "T3":
         return Transformer3.from_dict(dict_branch, nodes)
-    return None
-
+    else:
+        raise KeyError
