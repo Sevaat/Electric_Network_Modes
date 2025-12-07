@@ -1,13 +1,16 @@
-from typing import Union, Dict, Any, Self
-
-from pydantic import ValidationError, BaseModel
 from math import atan
+from typing import Any, Dict
+
+from pydantic import BaseModel
+
+from src.numerical_methods.newton_method.models.branch import Transformer3
 
 
 class Node(BaseModel):
     """
     Класс представляющий параметры узла электрической сети
     """
+
     power: complex  # мощность узла
     voltage: complex  # напряжение в узле
     type_node: str  # тип узла
@@ -20,18 +23,30 @@ class Node(BaseModel):
         :param dict_node: словарь входных данных узла
         :return: экземпляр узла
         """
-        name = dict_node['Name']
-        type_node = dict_node['Node type (L, S, LS)']
+        name = dict_node["Name"]
+        type_node = dict_node["Node type (L, S, LS)"]
         power: complex
-        if type_node == 'S':
+        if type_node == "S":
             power = complex(0, 0)
         else:
-            power = complex(dict_node['Power, MVA']['Real'], dict_node['Power, MVA']['Imaginary'])
-        voltage = complex(dict_node['Voltage, kV']['Real'], dict_node['Voltage, kV']['Imaginary'])
-        return cls(name=name,
-                   type_node=type_node,
-                   power=power,
-                   voltage=voltage)
+            power = complex(dict_node["Power, MVA"]["Real"], dict_node["Power, MVA"]["Imaginary"])
+        voltage = complex(dict_node["Voltage, kV"]["Real"], dict_node["Voltage, kV"]["Imaginary"])
+        return cls(name=name, type_node=type_node, power=power, voltage=voltage)
+
+    @classmethod
+    def get_neutral_transformer_node(cls, transformer3: Transformer3) -> Any:
+        """
+        Создать нейтральный трансформаторный узел для Т3
+        :param transformer3: данные трансформатора Т3
+        :return: данные узла или None
+        """
+        if isinstance(transformer3, Transformer3):
+            name = f"T3_{transformer3.high}_{transformer3.middle}_{transformer3.low}"
+            type_node = "L"
+            power = complex(0, 0)
+            voltage = complex(0, 0)
+            return cls(name=name, type_node=type_node, power=power, voltage=voltage)
+        return None
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Node):
@@ -54,17 +69,11 @@ class Node(BaseModel):
         return {
             "Name": self.name,
             "Node type (L, S, LS)": self.type_node,
-            "Power, MVA":
-                {
-                    'Real': self.power.real,
-                    'Imaginary': self.power.imag,
-                    'Magnitude': abs(self.power)
-                },
-            "Voltage, kV":
-                {
-                    'Real': self.power.real,
-                    'Imaginary': self.power.imag,
-                    'Magnitude': abs(self.power),
-                    'Angle': atan(self.imaginary_voltage / self.real_voltage)
-                }
+            "Power, MVA": {"Real": self.power.real, "Imaginary": self.power.imag, "Magnitude": abs(self.power)},
+            "Voltage, kV": {
+                "Real": self.power.real,
+                "Imaginary": self.power.imag,
+                "Magnitude": abs(self.power),
+                "Angle": atan(self.voltage.imag / self.voltage.real),
+            },
         }
