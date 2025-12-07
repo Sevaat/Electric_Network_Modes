@@ -1,341 +1,270 @@
-import json
-import os
-from datetime import datetime
-from pathlib import Path
-from typing import List, Dict, Any, Union, Tuple, Optional
+from abc import ABC
+from typing import List, Optional, Tuple
 
 import numpy
 
-from src.numerical_methods.newton_method.models.branch import Line, T2, T3
+from src.numerical_methods.newton_method.models.branch import Line, Transformer2, Transformer3
+from src.numerical_methods.newton_method.models.conductivity_matrix import get_conductivity_matrix
 from src.numerical_methods.newton_method.models.node import Node
 from src.numerical_methods.newton_method.models.parameters import Parameters
 
 
-class NewtonMethod:
-    nodes: List[Node]
-    branches: List[Branch]
-    parameters: Parameters
-
-    def __init__(self):
-        data = self._load()
-        self.nodes = [Node.from_dict(node) for node in data['NODES']]
-        for branch in data['BRANCHES']:
-            if branch['Type (LINE, T2, T3)'] == 'Line':
-                for node in self.nodes:
-                    if not isinstance(branch['Node (start)'], Node):
-                        if branch['Node (start)'] == node.name:
-                            branch['Node (start)'] = node
-                    if not isinstance(branch['Node (end)'], Node):
-                        if branch['Node (end)'] == node.name:
-                            branch['Node (end)'] = node
-            if branch['Type (LINE, T2, T3)'] == 'T2' or branch['Type (LINE, T2, T3)'] == 'T3':
-                for node in self.nodes:
-                    if not isinstance(branch['Node (HV)'], Node):
-                        if branch['Node (HV)'] == node.name:
-                            branch['Node (HV)'] = node
-                    if not isinstance(branch['Node (LV)'], Node):
-                        if branch['Node (LV)'] == node.name:
-                            branch['Node (LV)'] = node
-                    if branch['Type (LINE, T2, T3)'] == 'T3':
-                        if not isinstance(branch['Node (MV)'], Node):
-                            if branch['Node (MV)'] == node.name:
-                                branch['Node (MV)'] = node
-        branches = []
-        for branch in data['BRANCHES']:
-            if branch['Type (LINE, T2, T3)'] == 'Line':
-                self.branches.append(Line.from_dict(branch))
-            if branch['Type (LINE, T2, T3)'] == 'T2':
-                self.branches.append(T2.from_dict(branch))
-            if branch['Type (LINE, T2, T3)'] == 'T3':
-                self.branches.append(T3.from_dict(branch))
-        self.branches = branches
-        self.parameters = Parameters.from_dict(data['PARAMETERS'])
+class NewtonMethod(ABC):
 
     @staticmethod
-    def _load() -> Dict[str, Any]:
-        """
-        Читать JSON файл
-        :return:
-        """
-        filepath = str(Path(__file__).resolve().parent.parent.parent.parent / "data")
-        os.makedirs(filepath, exist_ok=True)
-        filepath = f"{filepath}/data_nm.json"
-        data = {}
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                data = json.load(file)
-            print("Файл успешно загружен")
-        except FileNotFoundError as e:
-            print(f"Файл не найден: {e}")
-        except json.JSONDecodeError as e:
-            print(f"Ошибка в формате JSON: {e}")
-        except Exception as e:
-            print(f"Произошла ошибка: {e}")
-        return data
-
-    def _save(self) -> None:
-        """
-        Запись в JSON файл
-        :return:
-        """
-        filepath = str(Path(__file__).resolve().parent.parent.parent.parent / "result")
-        os.makedirs(filepath, exist_ok=True)
-        filepath = f"{filepath}/result_nm_{datetime.now().strftime("%d.%m.%Y_%H-%M-%S")}.json"
-        try:
-            with open(filepath, "w", encoding="utf-8") as file:
-                nodes_list = [node.to_dict() for node in self.nodes]
-                branch_list = [branch.to_dict() for branch in self.branches]
-                full_power_loss = sum([branch.power_losses for branch in self.branches])
-                data = {
-                    "NODES": nodes_list,
-                    "BRANCHES": branch_list,
-                    "REAL TOTAL POWER LOSS, MW": full_power_loss.real,
-                    "IMAGINARY TOTAL POWER LOSS, Mvar": full_power_loss.imag
-                }
-                json.dump(data, file)
-            print("Запись результатов прошла успешно")
-        except Exception as e:
-            print(f"Произошла ошибка: {e}")
-
-    def _get_incident_matrix(self) -> numpy.ndarray:
-        """
-        Получить матрицу инцидентности
-        :return: матрица инцидентности
-        """
-        incident_matrix = numpy.zeros((len(self.nodes), len(self.branches)))
-        for i, branch in enumerate(self.branches):
-            number_node: List[Union[int, None]] = [None, None]
-            for j, node in enumerate(self.nodes):
-                if branch.start == node:
-                    number_node[0] = j
-                elif branch.end == node:
-                    number_node[1] = j
-                else:
-                    continue
-            incident_matrix[number_node[0], i] = 1
-            incident_matrix[number_node[1], i] = -1
-        return incident_matrix
-
-    def _get_conductivity_matrix(self) -> numpy.ndarray:
-        """
-        Получить матрицу собственных и взаимных проводимостей
-        :return: матрица собственных и взаимных проводимостей
-        """
-        conductivity_matrix = numpy.array([1 / branch.impedance for branch in self.branches])
-        incident_matrix = self._get_incident_matrix()
-        conductivity_matrix = numpy.dot(incident_matrix, numpy.diag(conductivity_matrix))
-        conductivity_matrix = numpy.dot(conductivity_matrix, incident_matrix.transpose())
-        imaginary_conductivity = []
-        for i in range(len(self.nodes)):
-            b = 0
-            for j in range(len(self.branches)):
-                if incident_matrix[i, j] != 0.:
-                    b += self.branches[j].imaginary_conductivity
-            imaginary_conductivity.append(b)
-        imaginary_conductivity = [complex(0, b) for b in imaginary_conductivity]
-        imaginary_conductivity = numpy.array(imaginary_conductivity)
-        imaginary_conductivity = numpy.diag(imaginary_conductivity)
-        conductivity_matrix = conductivity_matrix + imaginary_conductivity
-        return conductivity_matrix
-
-    def _get_power_imbalance(self, conductivity_matrix: numpy.ndarray) -> List[complex]:
+    def _get_power_imbalance(nodes: List[Node], conductivity_matrix: numpy.ndarray) -> List[complex]:
         """
         Получить небалансы мощности в узлах
+        :param nodes: список узлов
         :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: небалансы мощностей по узлам
         """
-        node_count = len(self.nodes)
+        node_count = len(nodes)
         power_imbalance: List[complex] = []
         for i in range(node_count):
             full_power: Optional[complex] = None
-            if self.nodes[i].type_node == 'S':
+            if nodes[i].type_node == "S":
                 full_power = complex(0, 0)
-            elif self.nodes[i].type_node == 'LS':
-                full_power = -self.nodes[i].full_power
+            elif nodes[i].type_node == "LS":
+                full_power = -nodes[i].power
             else:
-                full_power = self.nodes[i].full_power
-            real_power = [0, 0, 0]
-            real_power[0] = full_power.real + conductivity_matrix[i, i].real * abs(self.nodes[i].voltage) ** 2
-            imaginary_power = [0, 0, 0]
-            imaginary_power[0] = full_power.imag - conductivity_matrix[i, i].imag * abs(self.nodes[i].voltage) ** 2
+                full_power = nodes[i].power
+            real_power: List[int | float | complex] = [0, 0, 0]
+            real_power[0] = full_power.real + conductivity_matrix[i, i].real * abs(nodes[i].voltage) ** 2
+            imaginary_power: List[int | float | complex] = [0, 0, 0]
+            imaginary_power[0] = full_power.imag - conductivity_matrix[i, i].imag * abs(nodes[i].voltage) ** 2
             for j in range(node_count):
                 if j != i:
-                    real_power[1] += conductivity_matrix[i, j].real * self.nodes[j].real_voltage
-                    real_power[1] -= conductivity_matrix[i, j].imag * self.nodes[j].imaginary_voltage
-                    real_power[2] += conductivity_matrix[i, j].real * self.nodes[j].imaginary_voltage
-                    real_power[2] += conductivity_matrix[i, j].imag * self.nodes[j].real_voltage
-                    imaginary_power[1] += conductivity_matrix[i, j].real * self.nodes[j].real_voltage
-                    imaginary_power[1] -= conductivity_matrix[i, j].imag * self.nodes[j].imaginary_voltage
-                    imaginary_power[2] += conductivity_matrix[i, j].real * self.nodes[j].imaginary_voltage
-                    imaginary_power[2] += conductivity_matrix[i, j].imag * self.nodes[j].real_voltage
-            real_power[1] = self.nodes[i].real_voltage * real_power[1]
-            real_power[2] = self.nodes[i].imaginary_voltage * real_power[2]
-            imaginary_power[1] = self.nodes[i].imaginary_voltage * imaginary_power[1]
-            imaginary_power[2] = - self.nodes[i].real_voltage * imaginary_power[2]
+                    real_power[1] += conductivity_matrix[i, j].real * nodes[j].voltage.real
+                    real_power[1] -= conductivity_matrix[i, j].imag * nodes[j].voltage.imag
+                    real_power[2] += conductivity_matrix[i, j].real * nodes[j].voltage.imag
+                    real_power[2] += conductivity_matrix[i, j].imag * nodes[j].voltage.real
+                    imaginary_power[1] += conductivity_matrix[i, j].real * nodes[j].voltage.real
+                    imaginary_power[1] -= conductivity_matrix[i, j].imag * nodes[j].voltage.imag
+                    imaginary_power[2] += conductivity_matrix[i, j].real * nodes[j].voltage.imag
+                    imaginary_power[2] += conductivity_matrix[i, j].imag * nodes[j].voltage.real
+            real_power[1] = nodes[i].voltage.real * real_power[1]
+            real_power[2] = nodes[i].voltage.imag * real_power[2]
+            imaginary_power[1] = nodes[i].voltage.imag * imaginary_power[1]
+            imaginary_power[2] = -nodes[i].voltage.real * imaginary_power[2]
             power_imbalance.append(complex(sum(real_power), sum(imaginary_power)))
         return power_imbalance
 
-    def _unbalance_condition(self, power_imbalance: List[complex]) -> bool:
+    @staticmethod
+    def _unbalance_condition(nodes: List[Node], parameters: Parameters, power_imbalance: List[complex]) -> bool:
         """
         Проверка, что все небалансы меньше заданной точности
+        :param nodes: список узлов
+        :param parameters: параметры расчета
         :param power_imbalance: небалансы мощностей по узлам
         :return: True - небалансы меньше заданного порога точности, False - иначе
         """
         for i, p_imb in enumerate(power_imbalance):
-            if self.nodes[i].type_node != 'S':
-                if abs(p_imb.real) < self.parameters.accuracy and abs(p_imb.imag) < self.parameters.accuracy:
+            if nodes[i].type_node != "S":
+                if abs(p_imb.real) < parameters.accuracy and abs(p_imb.imag) < parameters.accuracy:
                     return True
         return False
 
-    def _get_dpi_du(self, i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
+    @staticmethod
+    def _get_dpi_du(nodes: List[Node], i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
         """
         Получить значения производных dpi/du
+        :param nodes: список узлов
         :param i: номер текущего узла
         :param j: номер другого узла
         :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: значения производных dpi/du
         """
         if i == j:
-            dpi_dui_real = [0, 0]
-            dpi_dui_imag = [0, 0]
-            dpi_dui_real[0] = 2 * conductivity_matrix[i, i].real * self.nodes[i].real_voltage
-            dpi_dui_imag[0] = 2 * conductivity_matrix[i, i].real * self.nodes[i].imaginary_voltage
-            for k in range(len(self.nodes)):  # номер позиции под знаком суммы
+            dpi_dui_real: List[float] = [0.0, 0.0]
+            dpi_dui_imag: List[float] = [0.0, 0.0]
+            dpi_dui_real[0] = 2 * conductivity_matrix[i, i].real * nodes[i].voltage.real
+            dpi_dui_imag[0] = 2 * conductivity_matrix[i, i].real * nodes[i].voltage.imag
+            for k in range(len(nodes)):  # номер позиции под знаком суммы
                 if k != i:
-                    dpi_dui_real[1] += conductivity_matrix[i, k].real * self.nodes[k].real_voltage
-                    dpi_dui_real[1] -= conductivity_matrix[i, k].imag * self.nodes[k].imaginary_voltage
-                    dpi_dui_imag[1] += conductivity_matrix[i, k].real * self.nodes[k].imaginary_voltage
-                    dpi_dui_imag[1] += conductivity_matrix[i, k].imag * self.nodes[k].real_voltage
-            dpi_dui_real = dpi_dui_real[0] + dpi_dui_real[1]
-            dpi_dui_imag = dpi_dui_imag[0] + dpi_dui_imag[1]
-            return dpi_dui_real, dpi_dui_imag
+                    dpi_dui_real[1] += conductivity_matrix[i, k].real * nodes[k].voltage.real
+                    dpi_dui_real[1] -= conductivity_matrix[i, k].imag * nodes[k].voltage.imag
+                    dpi_dui_imag[1] += conductivity_matrix[i, k].real * nodes[k].voltage.imag
+                    dpi_dui_imag[1] += conductivity_matrix[i, k].imag * nodes[k].voltage.real
+            return sum(dpi_dui_real), sum(dpi_dui_imag)
         else:
-            dpi_duj_real = conductivity_matrix[i, j].real * self.nodes[i].real_voltage
-            dpi_duj_real += conductivity_matrix[i, j].imag * self.nodes[i].imaginary_voltage
-            dpi_duj_imag = conductivity_matrix[i, j].real * self.nodes[i].imaginary_voltage
-            dpi_duj_imag -= conductivity_matrix[i, j].imag * self.nodes[i].real_voltage
+            dpi_duj_real: float = conductivity_matrix[i, j].real * nodes[i].voltage.real
+            dpi_duj_real += conductivity_matrix[i, j].imag * nodes[i].voltage.imag
+            dpi_duj_imag: float = conductivity_matrix[i, j].real * nodes[i].voltage.imag
+            dpi_duj_imag -= conductivity_matrix[i, j].imag * nodes[i].voltage.real
             return dpi_duj_real, dpi_duj_imag
 
-    def _get_row_pi(self, i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
+    @staticmethod
+    def _get_row_pi(nodes: List[Node], i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
         """
         Получить строку значений производных dpi/du
+        :param nodes: список узлов
         :param i: номер текущего узла
         :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: строка матрицы значений производных dpi/du
         """
         row_pi_jm = []
-        for j in range(len(self.nodes)):  # номер напряжения
-            if self.nodes[j].type_node != 'S':
-                dpi_du = self._get_dpi_du(i, j, conductivity_matrix)
+        for j in range(len(nodes)):  # номер напряжения
+            if nodes[j].type_node != "S":
+                dpi_du = NewtonMethod._get_dpi_du(nodes, i, j, conductivity_matrix)
                 row_pi_jm.append(dpi_du[0])
                 row_pi_jm.append(dpi_du[1])
         return row_pi_jm
 
-    def _get_dqi_du(self, i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
+    @staticmethod
+    def _get_dqi_du(nodes: List[Node], i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
         """
         Получить значения производных dqi/du
+        :param nodes: список узлов
         :param i: номер текущего узла
         :param j: номер другого узла
         :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: значения производных dqi/du
         """
         if i == j:
-            dqi_dui_real = [0, 0]
-            dqi_dui_imag = [0, 0]
-            dqi_dui_real[0] = - 2 * conductivity_matrix[i, i].imag * self.nodes[i].real_voltage
-            dqi_dui_imag[0] = - 2 * conductivity_matrix[i, i].imag * self.nodes[i].imaginary_voltage
-            for k in range(len(self.nodes)):  # номер позиции под знаком суммы
+            dqi_dui_real: List[float] = [0, 0]
+            dqi_dui_imag: List[float] = [0, 0]
+            dqi_dui_real[0] = -2 * conductivity_matrix[i, i].imag * nodes[i].voltage.real
+            dqi_dui_imag[0] = -2 * conductivity_matrix[i, i].imag * nodes[i].voltage.imag
+            for k in range(len(nodes)):  # номер позиции под знаком суммы
                 if k != i:
-                    dqi_dui_real[1] += conductivity_matrix[i, k].real * self.nodes[k].imaginary_voltage
-                    dqi_dui_real[1] += conductivity_matrix[i, k].imag * self.nodes[k].real_voltage
-                    dqi_dui_imag[1] += conductivity_matrix[i, k].real * self.nodes[k].real_voltage
-                    dqi_dui_imag[1] -= conductivity_matrix[i, k].imag * self.nodes[k].imaginary_voltage
-            dqi_dui_real = dqi_dui_real[0] - dqi_dui_real[1]
-            dqi_dui_imag = dqi_dui_imag[0] + dqi_dui_imag[1]
-            return dqi_dui_real, dqi_dui_imag
+                    dqi_dui_real[1] += conductivity_matrix[i, k].real * nodes[k].voltage.imag
+                    dqi_dui_real[1] += conductivity_matrix[i, k].imag * nodes[k].voltage.real
+                    dqi_dui_imag[1] += conductivity_matrix[i, k].real * nodes[k].voltage.real
+                    dqi_dui_imag[1] -= conductivity_matrix[i, k].imag * nodes[k].voltage.imag
+            dqi_dui_real[1] = -dqi_dui_real[1]
+            return sum(dqi_dui_real), sum(dqi_dui_imag)
         else:
-            dqi_duj_real = conductivity_matrix[i, j].real * self.nodes[i].imaginary_voltage
-            dqi_duj_real -= conductivity_matrix[i, j].imag * self.nodes[i].real_voltage
-            dqi_duj_imag = - conductivity_matrix[i, j].real * self.nodes[i].real_voltage
-            dqi_duj_imag -= conductivity_matrix[i, j].imag * self.nodes[i].imaginary_voltage
+            dqi_duj_real: float = conductivity_matrix[i, j].real * nodes[i].voltage.imag
+            dqi_duj_real -= conductivity_matrix[i, j].imag * nodes[i].voltage.real
+            dqi_duj_imag: float = -conductivity_matrix[i, j].real * nodes[i].voltage.real
+            dqi_duj_imag -= conductivity_matrix[i, j].imag * nodes[i].voltage.imag
         return dqi_duj_real, dqi_duj_imag
 
-    def _get_row_qi(self, i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
+    @staticmethod
+    def _get_row_qi(nodes: List[Node], i: int, conductivity_matrix: numpy.ndarray) -> List[float]:
         """
         Получить строку значений производных dqi/du
+        :param nodes: список узлов
         :param i: номер текущего узла
         :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: строка матрицы значений производных dqi/du
         """
         row_qi_jm = []
-        for j in range(len(self.nodes)):  # номер напряжения
-            if self.nodes[j].type_node != 'S':
-                dqi_du = self._get_dqi_du(i, j, conductivity_matrix)
+        for j in range(len(nodes)):  # номер напряжения
+            if nodes[j].type_node != "S":
+                dqi_du = NewtonMethod._get_dqi_du(nodes, i, j, conductivity_matrix)
                 row_qi_jm.append(dqi_du[0])
                 row_qi_jm.append(dqi_du[1])
         return row_qi_jm
 
-    def _get_jacobi_matrix(self, conductivity_matrix: numpy.ndarray) -> numpy.ndarray:
+    @staticmethod
+    def _get_jacobi_matrix(nodes: List[Node], conductivity_matrix: numpy.ndarray) -> numpy.ndarray:
         """
         Получить матрицу Якоби
+        :param nodes: список узлов
         :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: матрица Якоби
         """
         jacobi_matrix = []
-        for i in range(len(self.nodes)):  # номер мощности
-            if self.nodes[i].type_node != 'S':
-                row_pi = self._get_row_pi(i, conductivity_matrix)
+        for i in range(len(nodes)):  # номер мощности
+            if nodes[i].type_node != "S":
+                row_pi = NewtonMethod._get_row_pi(nodes, i, conductivity_matrix)
                 jacobi_matrix.append(row_pi)
-                row_qi = self._get_row_qi(i, conductivity_matrix)
+                row_qi = NewtonMethod._get_row_qi(nodes, i, conductivity_matrix)
                 jacobi_matrix.append(row_qi)
         return numpy.array(jacobi_matrix)
 
-    def _get_delta_voltage(self, power_imbalance: List[complex], jacobi_matrix: numpy.ndarray) -> List[complex]:
+    @staticmethod
+    def _get_delta_voltage(
+        nodes: List[Node], power_imbalance: List[complex], jacobi_matrix: numpy.ndarray
+    ) -> List[complex]:
         """
         Решить СЛАУ для нахождения приращений напряжений в узлах
+        :param nodes: список узлов
         :param power_imbalance: небалансы мощностей по узлам
         :param jacobi_matrix: матрица Якоби
         :return: приращения напряжений в узлах
         """
         delta = []
         for i, p_imb in enumerate(power_imbalance):
-            if self.nodes[i].type_node != 'S':
+            if nodes[i].type_node != "S":
                 delta.append(-p_imb.real)
                 delta.append(-p_imb.imag)
         delta_voltage = numpy.linalg.solve(jacobi_matrix, delta)
         return [complex(delta_voltage[i], delta_voltage[i + 1]) for i in range(0, len(delta_voltage), 2)]
 
-    def _voltage_correction(self, delta_voltage: List[complex]) -> None:
+    @staticmethod
+    def _voltage_correction(nodes: List[Node], delta_voltage: List[complex]) -> List[Node]:
         """
         Скорректировать напряжения в узлах
+        :param nodes: список узлов
         :param delta_voltage: приращения напряжений в узлах
-        :return:
+        :return: список узлов
         """
         j = 0
-        for i in range(len(self.nodes)):
-            if self.nodes[i].type_node != 'S':
-                self.nodes[i].voltage_correction(delta_voltage[j])
+        for i in range(len(nodes)):
+            if nodes[i].type_node != "S":
+                nodes[i].voltage_correction(delta_voltage[j])
                 j += 1
+        return nodes
 
-    def _currents(self) -> None:
-        for branch in self.branches:
-            branch.current = (branch.start.voltage - branch.end.voltage) / branch.impedance
+    @staticmethod
+    def _currents(branches: List[Line | Transformer2 | Transformer3]) -> List[Line | Transformer2 | Transformer3]:
+        """
+        Расчет комплексных токов в ветвях
+        :param branches: список ветвей
+        :return: список ветвей
+        """
+        for branch in branches:
+            if isinstance(branch, Line):
+                branch.current = (branch.start.voltage - branch.end.voltage) / branch.impedance
+            elif isinstance(branch, Transformer2):
+                branch.current = (branch.high.voltage - branch.low.voltage) / branch.impedance
+            elif isinstance(branch, Transformer3) and isinstance(branch.neutral_node, Node):
+                branch.high_current = (branch.high.voltage - branch.neutral_node.voltage) / branch.high_impedance
+                branch.middle_current = (branch.neutral_node.voltage - branch.middle.voltage) / branch.middle_impedance
+                branch.low_current = (branch.neutral_node.voltage - branch.low.voltage) / branch.low_impedance
+            else:
+                raise TypeError
+        return branches
 
-    def _power_losses(self) -> None:
-        for branch in self.branches:
-            branch.power_losses = branch.current ** 2 * branch.impedance
+    @staticmethod
+    def _power_losses(branches: List[Line | Transformer2 | Transformer3]) -> List[Line | Transformer2 | Transformer3]:
+        """
+        Расчет потерь мощности в элементах сети
+        :param branches: список ветвей
+        :return: список ветвей
+        """
+        for branch in branches:
+            if isinstance(branch, Line) and isinstance(branch, Transformer2) and isinstance(branch.current, complex):
+                branch.power_losses = branch.current**2 * branch.impedance
+            elif (
+                isinstance(branch, Transformer3)
+                and isinstance(branch.high_current, complex)
+                and isinstance(branch.middle_current, complex)
+                and isinstance(branch.low_current, complex)
+            ):
+                branch.high_power_losses = branch.high_current**2 * branch.high_impedance
+                branch.middle_power_losses = branch.middle_current**2 * branch.middle_impedance
+                branch.low_power_losses = branch.low_current**2 * branch.low_impedance
+            else:
+                raise TypeError
+        return branches
 
-    def run(self) -> None:
-        conductivity_matrix = self._get_conductivity_matrix()
-        for i in range(0, self.parameters.iterations):
-            power_imbalance = self._get_power_imbalance(conductivity_matrix)
-            if self._unbalance_condition(power_imbalance):
-                print('Точность достигнута! Расчет окончен!')
+    @staticmethod
+    def run(
+        nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
+    ) -> Tuple[List[Node], List[Line | Transformer2 | Transformer3]]:
+        conductivity_matrix = get_conductivity_matrix(nodes, branches)
+        for i in range(0, parameters.iterations):
+            power_imbalance = NewtonMethod._get_power_imbalance(nodes, conductivity_matrix)
+            if NewtonMethod._unbalance_condition(nodes, parameters, power_imbalance):
+                print("Точность достигнута! Расчет окончен!")
                 break
-            jacobi_matrix = self._get_jacobi_matrix(conductivity_matrix)
-            delta_voltage = self._get_delta_voltage(power_imbalance, jacobi_matrix)
-            self._voltage_correction(delta_voltage)
-        self._currents()
-        self._power_losses()
-        self._save()
-
+            jacobi_matrix = NewtonMethod._get_jacobi_matrix(nodes, conductivity_matrix)
+            delta_voltage = NewtonMethod._get_delta_voltage(nodes, power_imbalance, jacobi_matrix)
+            nodes = NewtonMethod._voltage_correction(nodes, delta_voltage)
+        branches = NewtonMethod._currents(branches)
+        branches = NewtonMethod._power_losses(branches)
+        return nodes, branches
