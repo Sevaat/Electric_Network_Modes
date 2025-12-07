@@ -1,4 +1,4 @@
-from math import atan
+from math import atan, atan2
 from typing import Any, Dict
 
 from pydantic import BaseModel
@@ -71,9 +71,9 @@ class Node(BaseModel):
             "Node type (L, S, LS)": self.type_node,
             "Power, MVA": {"Real": self.power.real, "Imaginary": self.power.imag, "Magnitude": abs(self.power)},
             "Voltage, kV": {
-                "Real": self.power.real,
-                "Imaginary": self.power.imag,
-                "Magnitude": abs(self.power),
-                "Angle": atan(self.voltage.imag / self.voltage.real),
+                "Real": self.voltage.real,
+                "Imaginary": self.voltage.imag,
+                "Magnitude": abs(self.voltage),
+                "Angle": atan2(self.voltage.imag, self.voltage.real),
             },
         }

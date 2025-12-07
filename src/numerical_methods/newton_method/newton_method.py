@@ -61,9 +61,9 @@ class NewtonMethod(ABC):
         """
         for i, p_imb in enumerate(power_imbalance):
             if nodes[i].type_node != "S":
-                if abs(p_imb.real) < parameters.accuracy and abs(p_imb.imag) < parameters.accuracy:
-                    return True
-        return False
+                if abs(p_imb.real) > parameters.accuracy and abs(p_imb.imag) > parameters.accuracy:
+                    return False
+        return True
 
     @staticmethod
     def _get_dpi_du(nodes: List[Node], i: int, j: int, conductivity_matrix: numpy.ndarray) -> Tuple[float, float]:
@@ -237,7 +237,7 @@ class NewtonMethod(ABC):
         :return: список ветвей
         """
         for branch in branches:
-            if isinstance(branch, Line) and isinstance(branch, Transformer2) and isinstance(branch.current, complex):
+            if (isinstance(branch, Line) or isinstance(branch, Transformer2)) and isinstance(branch.current, complex):
                 branch.power_losses = branch.current**2 * branch.impedance
             elif (
                 isinstance(branch, Transformer3)
