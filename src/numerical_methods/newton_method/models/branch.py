@@ -26,19 +26,36 @@ class Line(BaseModel):
         :param dict_line: словарь входных данных линии электропередачи
         :return: экземпляр линии электропередачи
         """
-        key_nodes = ["Node (start)", "Node (end)"]
-        for node in nodes:
-            for key_node in key_nodes:
-                if not isinstance(dict_line[key_node], Node):
-                    if dict_line[key_node] == node.name:
-                        dict_line[key_node] = node
+        if any([
+            "Node (start)" in dict_line,
+            "Node (end)" in dict_line,
+            "Type (Line, T2, T3)" in dict_line,
+            "Impedance, Ohm" in dict_line,
+            "Conductivity, S" in dict_line
+        ]):
+            if any([
+                "Real" in dict_line["Impedance, Ohm"],
+                "Imaginary" in dict_line["Impedance, Ohm"],
+                "Real" in dict_line["Conductivity, S"],
+                "Imaginary" in dict_line["Conductivity, S"],
+            ]):
+                key_nodes = ["Node (start)", "Node (end)"]
+                for node in nodes:
+                    for key_node in key_nodes:
+                        if not isinstance(dict_line[key_node], Node):
+                            if dict_line[key_node] == node.name:
+                                dict_line[key_node] = node
 
-        type_branch = dict_line["Type (Line, T2, T3)"]
-        start = dict_line["Node (start)"]
-        end = dict_line["Node (end)"]
-        impedance = complex(dict_line["Impedance, Ohm"]["Real"], dict_line["Impedance, Ohm"]["Imaginary"])
-        conductivity = complex(dict_line["Conductivity, S"]["Real"], dict_line["Conductivity, S"]["Imaginary"])
-        return cls(type_branch=type_branch, start=start, end=end, impedance=impedance, conductivity=conductivity)
+                type_branch = dict_line["Type (Line, T2, T3)"]
+                start = dict_line["Node (start)"]
+                end = dict_line["Node (end)"]
+                impedance = complex(dict_line["Impedance, Ohm"]["Real"], dict_line["Impedance, Ohm"]["Imaginary"])
+                conductivity = complex(dict_line["Conductivity, S"]["Real"], dict_line["Conductivity, S"]["Imaginary"])
+                return cls(type_branch=type_branch, start=start, end=end, impedance=impedance, conductivity=conductivity)
+            else:
+                raise KeyError
+        else:
+            raise KeyError
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -90,27 +107,45 @@ class Transformer2(BaseModel):
         :param dict_t2: словарь входных данных двухобмоточного трансформатора
         :return: экземпляр двухобмоточного трансформатора
         """
-        key_nodes = ["Node (HV)", "Node (LV)"]
-        for node in nodes:
-            for key_node in key_nodes:
-                if not isinstance(dict_t2[key_node], Node):
-                    if dict_t2[key_node] == node.name:
-                        dict_t2[key_node] = node
+        if any([
+            "Node (HV)" in dict_t2,
+            "Node (LV)" in dict_t2,
+            "Type (Line, T2, T3)" in dict_t2,
+            "Impedance, Ohm" in dict_t2,
+            "Conductivity, S" in dict_t2,
+            "Transformation ratio HV-LV" in dict_t2,
+        ]):
+            if any([
+                "Real" in dict_t2["Impedance, Ohm"],
+                "Imaginary" in dict_t2["Impedance, Ohm"],
+                "Real" in dict_t2["Conductivity, S"],
+                "Imaginary" in dict_t2["Conductivity, S"],
+            ]):
+                key_nodes = ["Node (HV)", "Node (LV)"]
+                for node in nodes:
+                    for key_node in key_nodes:
+                        if not isinstance(dict_t2[key_node], Node):
+                            if dict_t2[key_node] == node.name:
+                                dict_t2[key_node] = node
 
-        type_branch = dict_t2["Type (Line, T2, T3)"]
-        high = dict_t2["Node (HV)"]
-        low = dict_t2["Node (LV)"]
-        impedance = complex(dict_t2["Impedance, Ohm"]["Real"], dict_t2["Impedance, Ohm"]["Imaginary"])
-        conductivity = complex(dict_t2["Conductivity, S"]["Real"], dict_t2["Conductivity, S"]["Imaginary"])
-        tr_rat_high_low = dict_t2["Transformation ratio HV-LV"]
-        return cls(
-            type_branch=type_branch,
-            high=high,
-            low=low,
-            impedance=impedance,
-            conductivity=conductivity,
-            tr_rat_high_low=tr_rat_high_low,
-        )
+                type_branch = dict_t2["Type (Line, T2, T3)"]
+                high = dict_t2["Node (HV)"]
+                low = dict_t2["Node (LV)"]
+                impedance = complex(dict_t2["Impedance, Ohm"]["Real"], dict_t2["Impedance, Ohm"]["Imaginary"])
+                conductivity = complex(dict_t2["Conductivity, S"]["Real"], dict_t2["Conductivity, S"]["Imaginary"])
+                tr_rat_high_low = dict_t2["Transformation ratio HV-LV"]
+                return cls(
+                    type_branch=type_branch,
+                    high=high,
+                    low=low,
+                    impedance=impedance,
+                    conductivity=conductivity,
+                    tr_rat_high_low=tr_rat_high_low,
+                )
+            else:
+                raise KeyError
+        else:
+            raise KeyError
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -172,39 +207,67 @@ class Transformer3(BaseModel):
         :param dict_t3: словарь входных данных трехобмоточного трансформатора
         :return: экземпляр трехобмоточного трансформатора
         """
-        key_nodes = ["Node (HV)", "Node (MV)", "Node (LV)"]
-        for node in nodes:
-            for key_node in key_nodes:
-                if not isinstance(dict_t3[key_node], Node):
-                    if dict_t3[key_node] == node.name:
-                        dict_t3[key_node] = node
+        if any([
+            "Type (LINE, T2, T3)" in dict_t3,
+            "Node (HV)" in dict_t3,
+            "Node (MV)" in dict_t3,
+            "Node (LV)" in dict_t3,
+            "High_impedance, Ohm" in dict_t3,
+            "High_conductivity, S" in dict_t3,
+            "Middle_impedance, Ohm" in dict_t3,
+            "Low_impedance, Ohm" in dict_t3,
+            "Transformation ratio HV-MV" in dict_t3,
+            "Transformation ratio HV-LV" in dict_t3,
+        ]):
+            if any([
+                "Real" in dict_t3["High_impedance, Ohm"],
+                "Imaginary" in dict_t3["High_impedance, Ohm"],
+                "Real" in dict_t3["High_conductivity, S"],
+                "Imaginary" in dict_t3["High_conductivity, S"],
+                "Real" in dict_t3["Middle_impedance, Ohm"],
+                "Imaginary" in dict_t3["Middle_impedance, Ohm"],
+                "Real" in dict_t3["Low_impedance, Ohm"],
+                "Imaginary" in dict_t3["Low_impedance, Ohm"],
+            ]):
+                key_nodes = ["Node (HV)", "Node (MV)", "Node (LV)"]
+                for node in nodes:
+                    for key_node in key_nodes:
+                        if not isinstance(dict_t3[key_node], Node):
+                            if dict_t3[key_node] == node.name:
+                                dict_t3[key_node] = node
 
-        type_branch = dict_t3["Type (LINE, T2, T3)"]
-        high = dict_t3["Node (HV)"]
-        high_impedance = complex(dict_t3["High_impedance, Ohm"]["Real"], dict_t3["High_impedance, Ohm"]["Imaginary"])
-        high_conductivity = complex(
-            dict_t3["High_conductivity, S"]["Real"], dict_t3["High_conductivity, S"]["Imaginary"]
-        )
-        middle = dict_t3["Node (MV)"]
-        middle_impedance = complex(
-            dict_t3["Middle_impedance, Ohm"]["Real"], dict_t3["Middle_impedance, Ohm"]["Imaginary"]
-        )
-        low = dict_t3["Node (LV)"]
-        low_impedance = complex(dict_t3["Low_impedance, Ohm"]["Real"], dict_t3["Low_impedance, Ohm"]["Imaginary"])
-        tr_rat_high_middle = dict_t3["Transformation ratio HV-MV"]
-        tr_rat_high_low = dict_t3["Transformation ratio HV-LV"]
-        return cls(
-            type_branch=type_branch,
-            high=high,
-            high_impedance=high_impedance,
-            high_conductivity=high_conductivity,
-            middle=middle,
-            middle_impedance=middle_impedance,
-            low=low,
-            low_impedance=low_impedance,
-            tr_rat_high_middle=tr_rat_high_middle,
-            tr_rat_high_low=tr_rat_high_low,
-        )
+                type_branch = dict_t3["Type (LINE, T2, T3)"]
+                high = dict_t3["Node (HV)"]
+                high_impedance = complex(dict_t3["High_impedance, Ohm"]["Real"],
+                                         dict_t3["High_impedance, Ohm"]["Imaginary"])
+                high_conductivity = complex(
+                    dict_t3["High_conductivity, S"]["Real"], dict_t3["High_conductivity, S"]["Imaginary"]
+                )
+                middle = dict_t3["Node (MV)"]
+                middle_impedance = complex(
+                    dict_t3["Middle_impedance, Ohm"]["Real"], dict_t3["Middle_impedance, Ohm"]["Imaginary"]
+                )
+                low = dict_t3["Node (LV)"]
+                low_impedance = complex(dict_t3["Low_impedance, Ohm"]["Real"],
+                                        dict_t3["Low_impedance, Ohm"]["Imaginary"])
+                tr_rat_high_middle = dict_t3["Transformation ratio HV-MV"]
+                tr_rat_high_low = dict_t3["Transformation ratio HV-LV"]
+                return cls(
+                    type_branch=type_branch,
+                    high=high,
+                    high_impedance=high_impedance,
+                    high_conductivity=high_conductivity,
+                    middle=middle,
+                    middle_impedance=middle_impedance,
+                    low=low,
+                    low_impedance=low_impedance,
+                    tr_rat_high_middle=tr_rat_high_middle,
+                    tr_rat_high_low=tr_rat_high_low,
+                )
+            else:
+                raise KeyError
+        else:
+            raise KeyError
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -280,6 +343,8 @@ class Transformer3(BaseModel):
             return sum([self.high_power_losses, self.middle_power_losses, self.low_power_losses])
         else:
             raise TypeError
+
+
 
 
 def new_branch(dict_branch: Dict[str, Any], nodes: List[Node]) -> Line | Transformer2 | Transformer3:
