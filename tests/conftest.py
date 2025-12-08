@@ -1,5 +1,6 @@
 import pytest
 
+from src.numerical_methods.newton_method.models.branch import Line, Transformer2
 from src.numerical_methods.newton_method.models.node import Node
 
 
@@ -65,3 +66,60 @@ def nodes_t3():
         voltage=complex(0, 0)
     )
     return [hv, mv, lv, neutral]
+
+@pytest.fixture
+def simple_network():
+    """Фикстура простой сети из 2 узлов и 1 линии"""
+    nodes = [
+        Node(
+            name="Bus_1",
+            type_node="S",
+            power=complex(0, 0),
+            voltage=complex(110, 0)
+        ),
+        Node(
+            name="Bus_2",
+            type_node="L",
+            power=complex(50, 25),
+            voltage=complex(108, 5)
+        )
+    ]
+    branches = [
+        Line(
+            type_branch="Line",
+            start=nodes[0],
+            end=nodes[1],
+            impedance=complex(1.0, 5.0),
+            conductivity=complex(0.001, -0.005)
+        )
+    ]
+    return nodes, branches
+
+@pytest.fixture
+def network_with_transformer2():
+    """Фикстура сети с двухобмоточным трансформатором"""
+    nodes = [
+        Node(
+            name="HV",
+            type_node="S",
+            power=complex(0, 0),
+            voltage=complex(110, 0)
+        ),
+        Node(
+            name="LV",
+            type_node="L",
+            power=complex(50, 25),
+            voltage=complex(10, 0)
+        )
+    ]
+    branches = [
+        Transformer2(
+            type_branch="T2",
+            high=nodes[0],
+            low=nodes[1],
+            impedance=complex(0.1, 1.5),
+            conductivity=complex(0.001, -0.002),
+            tr_rat_high_low=11.0
+        )
+    ]
+    return nodes, branches
