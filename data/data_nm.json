@@ -3,92 +3,142 @@
     {
       "Name": "0",
       "Node type (L, S, LS)": "L",
-      "Real power, MW": 124,
-      "Imaginary power, Mvar": 31.08,
-      "Real voltage, kV": 220,
-      "Imaginary voltage, kV": 0
+      "Power, MVA": {
+        "Real": 124,
+        "Imaginary": 31.08
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
     },
     {
       "Name": "1",
       "Node type (L, S, LS)": "L",
-      "Real power, MW": 96,
-      "Imaginary power, Mvar": 19.49,
-      "Real voltage, kV": 220,
-      "Imaginary voltage, kV": 0
+      "Power, MVA": {
+        "Real": 96,
+        "Imaginary": 19.49
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
     },
     {
       "Name": "2",
       "Node type (L, S, LS)": "L",
-      "Real power, MW": 104,
-      "Imaginary power, Mvar": 34.18,
-      "Real voltage, kV": 220,
-      "Imaginary voltage, kV": 0
+      "Power, MVA": {
+        "Real": 104,
+        "Imaginary": 34.18
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
     },
     {
       "Name": "3",
       "Node type (L, S, LS)": "LS",
-      "Real power, MW": 106,
-      "Imaginary power, Mvar": 21.52,
-      "Real voltage, kV": 220,
-      "Imaginary voltage, kV": 0
+      "Power, MVA": {
+        "Real": 106,
+        "Imaginary": 21.52
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
     },
     {
       "Name": "4",
       "Node type (L, S, LS)": "S",
-      "Real power, MW": 0,
-      "Imaginary power, Mvar": 0,
-      "Real voltage, kV": 242,
-      "Imaginary voltage, kV": 0
+      "Power, MVA": {
+        "Real": 0,
+        "Imaginary": 0
+      },
+      "Voltage, kV": {
+        "Real": 242,
+        "Imaginary": 0
+      }
     }
   ],
   "BRANCHES": [
     {
       "Node (start)": "3",
       "Node (end)": "4",
-      "Real resistance, Ohm": 4.9,
-      "Imaginary resistance, Ohm": 18.41,
-      "Real conductivity, S": 0,
-      "Imaginary conductivity, S": 5.42e-5
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 4.9,
+        "Imaginary": 18.41
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 5.42e-5
+      }
     },
     {
       "Node (start)": "0",
       "Node (end)": "4",
-      "Real resistance, Ohm": 3.71,
-      "Imaginary resistance, Ohm": 22.39,
-      "Real conductivity, S": 0,
-      "Imaginary conductivity, S": 7.11e-5
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 3.71,
+        "Imaginary": 22.39
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 7.11e-5
+      }
     },
     {
       "Node (start)": "0",
       "Node (end)": "1",
-      "Real resistance, Ohm": 4.2,
-      "Imaginary resistance, Ohm": 19.41,
-      "Real conductivity, S": 0,
-      "Imaginary conductivity, S": 5.91e-5
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 4.2,
+        "Imaginary": 19.41
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 5.91e-5
+      }
     },
     {
       "Node (start)": "1",
       "Node (end)": "4",
-      "Real resistance, Ohm": 6.81,
-      "Imaginary resistance, Ohm": 31.49,
-      "Real conductivity, S": 0,
-      "Imaginary conductivity, S": 9.58e-5
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 6.81,
+        "Imaginary": 31.49
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 9.58e-5
+      }
     },
     {
       "Node (start)": "2",
       "Node (end)": "3",
-      "Real resistance, Ohm": 2.73,
-      "Imaginary resistance, Ohm": 16.48,
-      "Real conductivity, S": 0,
-      "Imaginary conductivity, S": 2.09e-4
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 2.73,
+        "Imaginary": 16.48
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 2.09e-4
+      }
     },
     {
       "Node (start)": "1",
       "Node (end)": "2",
-      "Real resistance, Ohm": 5.37,
-      "Imaginary resistance, Ohm": 20.16,
-      "Real conductivity, S": 0,
-      "Imaginary conductivity, S": 5.94e-5
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 5.37,
+        "Imaginary": 20.16
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 5.94e-5
+      }
     }
   ],
   "PARAMETERS": {
