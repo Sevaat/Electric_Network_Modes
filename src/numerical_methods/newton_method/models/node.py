@@ -1,9 +1,7 @@
-from math import atan, atan2
+from math import atan2
 from typing import Any, Dict
 
 from pydantic import BaseModel
-
-from src.numerical_methods.newton_method.models.branch import Transformer3
 
 
 class Node(BaseModel):
@@ -23,30 +21,31 @@ class Node(BaseModel):
         :param dict_node: словарь входных данных узла
         :return: экземпляр узла
         """
-        name = dict_node["Name"]
-        type_node = dict_node["Node type (L, S, LS)"]
-        power: complex
-        if type_node == "S":
-            power = complex(0, 0)
+        if any([
+            "Name" in dict_node,
+            "Node type (L, S, LS)" in dict_node,
+            "Power, MVA" in dict_node,
+            "Voltage, kV" in dict_node,
+        ]):
+            if any([
+                "Real" in dict_node["Power, MVA"],
+                "Imaginary" in dict_node["Power, MVA"],
+                "Real" in dict_node["Voltage, kV"],
+                "Imaginary" in dict_node["Voltage, kV"],
+            ]):
+                name = dict_node["Name"]
+                type_node = dict_node["Node type (L, S, LS)"]
+                power: complex
+                if type_node == "S":
+                    power = complex(0, 0)
+                else:
+                    power = complex(dict_node["Power, MVA"]["Real"], dict_node["Power, MVA"]["Imaginary"])
+                voltage = complex(dict_node["Voltage, kV"]["Real"], dict_node["Voltage, kV"]["Imaginary"])
+                return cls(name=name, type_node=type_node, power=power, voltage=voltage)
+            else:
+                raise KeyError
         else:
-            power = complex(dict_node["Power, MVA"]["Real"], dict_node["Power, MVA"]["Imaginary"])
-        voltage = complex(dict_node["Voltage, kV"]["Real"], dict_node["Voltage, kV"]["Imaginary"])
-        return cls(name=name, type_node=type_node, power=power, voltage=voltage)
-
-    @classmethod
-    def get_neutral_transformer_node(cls, transformer3: Transformer3) -> Any:
-        """
-        Создать нейтральный трансформаторный узел для Т3
-        :param transformer3: данные трансформатора Т3
-        :return: данные узла или None
-        """
-        if isinstance(transformer3, Transformer3):
-            name = f"T3_{transformer3.high}_{transformer3.middle}_{transformer3.low}"
-            type_node = "L"
-            power = complex(0, 0)
-            voltage = complex(0, 0)
-            return cls(name=name, type_node=type_node, power=power, voltage=voltage)
-        return None
+            raise KeyError
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Node):
