@@ -1,55 +1,21 @@
 import pytest
 
+from src.numerical_methods.newton_method.models.node import Node
+
 
 @pytest.fixture
-def test_data():
-    return {
-        "NODES": [
-            {
-                "Name": "1",
-                "Node type (L, S, LS)": "S",
-                "Power, MVA": {'Real': 0, 'Imaginary': 0 },
-                "Voltage, kV": { 'Real': 115, 'Imaginary': 0 }
-            },
-            {
-                "Name": "2",
-                "Node type (L, S, LS)": "LS",
-                "Power, MVA": {'Real': 28.8675, 'Imaginary': 17.3205},
-                "Voltage, kV": {'Real': 110, 'Imaginary': 0}
-            },
-            {
-                "Name": "3",
-                "Node type (L, S, LS)": "L",
-                "Power, MVA": {'Real': 46.188, 'Imaginary': 23.094},
-                "Voltage, kV": {'Real': 110, 'Imaginary': 0}
-            }
-        ],
-        "BRANCHES": [
-            {
-                "Type (Line, T2, T3)": "Line",
-                "Node (start)": "1",
-                "Node (end)": "2",
-                "Impedance, Ohm": {'Real': 10, "Imaginary": 20},
-                "Conductivity, S": {'Real': 0, "Imaginary": 0}
-            },
-            {
-                "Type (Line, T2, T3)": "Line",
-                "Node (start)": "1",
-                "Node (end)": "3",
-                "Impedance, Ohm": {'Real': 15, "Imaginary": 30},
-                "Conductivity, S": {'Real': 0, "Imaginary": 0}
-            },
-            {
-                "Type (Line, T2, T3)": "Line",
-                "Node (start)": "2",
-                "Node (end)": "3",
-                "Impedance, Ohm": {'Real': 10, "Imaginary": 25},
-                "Conductivity, S": {'Real': 0, "Imaginary": 0}
-            }
-        ],
-        "PARAMETERS": {
-            "Nominal voltage, kV": 110,
-            "Accuracy": 0.001,
-            "Max iterations": 100
-        }
-    }
+def nodes():
+    """Фикстура с двумя узлами для тестирования линий"""
+    node1 = Node(
+        name="Node_1",
+        type_node="S",
+        power=complex(0, 0),
+        voltage=complex(110, 0)
+    )
+    node2 = Node(
+        name="Node_2",
+        type_node="L",
+        power=complex(50, 25),
+        voltage=complex(108, 5)
+    )
+    return [node1, node2]
