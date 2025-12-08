@@ -19,7 +19,10 @@ class Parameters(BaseModel):
         :param dict_param: словарь входных данных параметров
         :return: экземпляр узла
         """
-        nominal_voltage = dict_param["Nominal voltage, kV"]
-        accuracy = dict_param["Accuracy"]
-        iterations = dict_param["Max iterations"]
-        return cls(nominal_voltage=nominal_voltage, accuracy=accuracy, iterations=iterations)
+        if "Nominal voltage, kV" in dict_param and "Accuracy" in dict_param and "Max iterations" in dict_param:
+            nominal_voltage = dict_param["Nominal voltage, kV"]
+            accuracy = dict_param["Accuracy"]
+            iterations = dict_param["Max iterations"]
+            return cls(nominal_voltage=nominal_voltage, accuracy=accuracy, iterations=iterations)
+        else:
+            raise KeyError
