@@ -22,7 +22,13 @@ class Methods:
         self.parameters = Parameters.from_dict(data["PARAMETERS"])
         for branch in self.branches:
             if isinstance(branch, Transformer3):
-                node = Node.get_neutral_transformer_node(branch)
+                dict_t3 ={
+                    "name": f"T3_{branch.high}_{branch.middle}_{branch.low}",
+                    "type_node": "L",
+                    "power": complex(0, 0),
+                    "voltage": complex(0, 0),
+                }
+                node = Node.from_dict(dict_t3)
                 branch.neutral_node = node
                 self.nodes.append(node)
 
