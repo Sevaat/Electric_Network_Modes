@@ -21,6 +21,7 @@ def nodes_line():
     )
     return [node1, node2]
 
+
 @pytest.fixture
 def nodes_t2():
     """Фикстура с узлами ВН и НН"""
@@ -37,6 +38,7 @@ def nodes_t2():
         voltage=complex(10, 0)
     )
     return [hv, lv]
+
 
 @pytest.fixture
 def nodes_t3():
@@ -67,6 +69,7 @@ def nodes_t3():
     )
     return [hv, mv, lv, neutral]
 
+
 @pytest.fixture
 def simple_network():
     """Фикстура простой сети из 2 узлов и 1 линии"""
@@ -94,6 +97,7 @@ def simple_network():
         )
     ]
     return nodes, branches
+
 
 @pytest.fixture
 def network_with_transformer2():
@@ -123,3 +127,97 @@ def network_with_transformer2():
         )
     ]
     return nodes, branches
+
+
+@pytest.fixture
+def test_data():
+    return {
+        "NODES": [
+            {
+                "Name": "1",
+                "Node type (L, S, LS)": "S",
+                "Power, MVA": {
+                    "Real": 0,
+                    "Imaginary": 0
+                },
+                "Voltage, kV": {
+                    "Real": 115,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Name": "2",
+                "Node type (L, S, LS)": "LS",
+                "Power, MVA": {
+                    "Real": 28.8675,
+                    "Imaginary": 17.3205
+                },
+                "Voltage, kV": {
+                    "Real": 110,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Name": "3",
+                "Node type (L, S, LS)": "L",
+                "Power, MVA": {
+                    "Real": 46.1880,
+                    "Imaginary": 23.0940
+                },
+                "Voltage, kV": {
+                    "Real": 110,
+                    "Imaginary": 0
+                }
+            }
+        ],
+        "BRANCHES": [
+            {
+                "Node (start)": "1",
+                "Node (end)": "2",
+                "Type (Line, T2, T3)": "Line",
+                "Impedance, Ohm": {
+                    "Real": 10,
+                    "Imaginary": 20
+                },
+                "Conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Node (start)": "1",
+                "Node (end)": "3",
+                "Type (Line, T2, T3)": "Line",
+                "Impedance, Ohm": {
+                    "Real": 15,
+                    "Imaginary": 30
+                },
+                "Conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Node (start)": "2",
+                "Node (end)": "3",
+                "Type (Line, T2, T3)": "Line",
+                "Impedance, Ohm": {
+                    "Real": 10,
+                    "Imaginary": 25
+                },
+                "Conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
+                }
+            }
+        ],
+        "PARAMETERS": {
+            "Nominal voltage, kV": 110,
+            "Accuracy": 0.001,
+            "Max iterations": 100
+        }
+    }
+
+@pytest.fixture
+def test_data_t2():
+    pass
