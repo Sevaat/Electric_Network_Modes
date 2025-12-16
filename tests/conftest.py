@@ -269,3 +269,77 @@ def test_data_t2():
             "Max iterations": 100
         }
     }
+
+@pytest.fixture
+def test_data_t3():
+    return {
+        "NODES": [
+            {
+                "Name": "1",
+                "Node type (L, S, LS)": "S",
+                "Power, MVA": {
+                    "Real": 0,
+                    "Imaginary": 0
+                },
+                "Voltage, kV": {
+                    "Real": 240,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Name": "2",
+                "Node type (L, S, LS)": "L",
+                "Power, MVA": {
+                    "Real": 40,
+                    "Imaginary": 30
+                },
+                "Voltage, kV": {
+                    "Real": 110,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Name": "3",
+                "Node type (L, S, LS)": "L",
+                "Power, MVA": {
+                    "Real": 30,
+                    "Imaginary": 10
+                },
+                "Voltage, kV": {
+                    "Real": 10,
+                    "Imaginary": 0
+                }
+            }
+        ],
+        "BRANCHES": [
+            {
+                "Type (Line, T2, T3)": "T3",
+                "Node (HV)": "1",
+                "Node (MV)": "2",
+                "Node (LV)": "3",
+                "High_impedance, Ohm": {
+                    "Real": 0.7,
+                    "Imaginary": 52
+                },
+                "High_conductivity, S": {
+                    "Real": 0.85e-6,
+                    "Imaginary": 5.95e-6
+                },
+                "Middle_impedance, Ohm": {
+                    "Real": 0.7,
+                    "Imaginary": 0
+                },
+                "Low_impedance, Ohm": {
+                    "Real": 1.4,
+                    "Imaginary": 98
+                },
+                "Transformation ratio HV-MV": 1.9,
+                "Transformation ratio HV-LV": 20.91
+            }
+        ],
+        "PARAMETERS": {
+            "Nominal voltage, kV": 220,
+            "Accuracy": 0.001,
+            "Max iterations": 100
+        }
+    }

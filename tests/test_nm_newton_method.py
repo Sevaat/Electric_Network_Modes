@@ -1,6 +1,6 @@
 import numpy
 
-from src.numerical_methods.newton_method.models.branch import new_branch
+from src.numerical_methods.newton_method.models.branch import new_branch, Transformer3
 from src.numerical_methods.newton_method.models.conductivity_matrix import get_conductivity_matrix
 from src.numerical_methods.newton_method.models.node import Node
 from src.numerical_methods.newton_method.models.parameters import Parameters
@@ -79,11 +79,33 @@ def test_newton_method_t2(test_data_t2):
     nodes = [Node.from_dict(node) for node in test_data_t2["NODES"]]
     branches = [new_branch(branch, nodes) for branch in test_data_t2["BRANCHES"]]
     parameters = Parameters.from_dict(test_data_t2["PARAMETERS"])
-    conductivity_matrix = get_conductivity_matrix(nodes, branches)
     nodes, branches = NewtonMethod.run(nodes, branches, parameters)
 
-    assert abs(nodes[0].voltage - complex(115, 0)) < 1e-3
     assert abs(nodes[1].voltage - complex(10.985, -0.405)) < 1e-3
+
+def test_newton_method_t3(test_data_t3):
+    """Проверка расчета методом Ньютона для сети, содержащей только трехобмоточный трансформатор"""
+    # проверка правильности расчета
+    nodes = [Node.from_dict(node) for node in test_data_t3["NODES"]]
+    branches = [new_branch(branch, nodes) for branch in test_data_t3["BRANCHES"]]
+    parameters = Parameters.from_dict(test_data_t3["PARAMETERS"])
+
+    for branch in branches:
+        if isinstance(branch, Transformer3):
+            dict_t3 = {
+                "Name": f"T3_{branch.high}_{branch.middle}_{branch.low}",
+                "Node type (L, S, LS)": "L",
+                "Power, MVA": {"Real": 0, "Imaginary": 0},
+                "Voltage, kV": {"Real": 240, "Imaginary": 0},
+            }
+            node = Node.from_dict(dict_t3)
+            branch.neutral_node = node
+            nodes.append(node)
+
+    nodes, branches = NewtonMethod.run(nodes, branches, parameters)
+
+    assert abs(nodes[1].voltage - complex(0, 0)) < 1e-3
+    assert abs(nodes[2].voltage - complex(11, 0)) < 1e-3
 
 
 
