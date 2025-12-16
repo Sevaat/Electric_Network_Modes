@@ -73,5 +73,17 @@ def test_newton_method_line(test_data_line):
     assert abs(nodes[1].voltage - complex(115.415, 0.272)) < 1e-3
     assert abs(nodes[2].voltage - complex(109.643, -4.126)) < 1e-3
 
-def test_newton_method_line(test_data_t2):
-    pass
+def test_newton_method_t2(test_data_t2):
+    """Проверка расчета методом Ньютона для сети, содержащей только двухобмоточный трансформатор"""
+    # проверка правильности расчета
+    nodes = [Node.from_dict(node) for node in test_data_t2["NODES"]]
+    branches = [new_branch(branch, nodes) for branch in test_data_t2["BRANCHES"]]
+    parameters = Parameters.from_dict(test_data_t2["PARAMETERS"])
+    conductivity_matrix = get_conductivity_matrix(nodes, branches)
+    nodes, branches = NewtonMethod.run(nodes, branches, parameters)
+
+    assert abs(nodes[0].voltage - complex(115, 0)) < 1e-3
+    assert abs(nodes[1].voltage - complex(10.985, -0.405)) < 1e-3
+
+
+

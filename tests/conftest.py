@@ -130,7 +130,7 @@ def network_with_transformer2():
 
 
 @pytest.fixture
-def test_data():
+def test_data_line():
     return {
         "NODES": [
             {
@@ -220,4 +220,52 @@ def test_data():
 
 @pytest.fixture
 def test_data_t2():
-    pass
+    return {
+        "NODES": [
+            {
+                "Name": "1",
+                "Node type (L, S, LS)": "S",
+                "Power, MVA": {
+                    "Real": 0,
+                    "Imaginary": 0
+                },
+                "Voltage, kV": {
+                    "Real": 115,
+                    "Imaginary": 0
+                }
+            },
+            {
+                "Name": "2",
+                "Node type (L, S, LS)": "L",
+                "Power, MVA": {
+                    "Real": 1,
+                    "Imaginary": 1
+                },
+                "Voltage, kV": {
+                    "Real": 10,
+                    "Imaginary": 0
+                }
+            }
+        ],
+        "BRANCHES": [
+            {
+                "Node (HV)": "1",
+                "Node (LV)": "2",
+                "Type (Line, T2, T3)": "T2",
+                "Impedance, Ohm": {
+                    "Real": 42.6,
+                    "Imaginary": 508.2
+                },
+                "Conductivity, S": {
+                    "Real": 0.455e-6,
+                    "Imaginary": 3.1e-6
+                },
+                "Transformation ratio HV-LV": 10
+            }
+        ],
+        "PARAMETERS": {
+            "Nominal voltage, kV": 110,
+            "Accuracy": 0.001,
+            "Max iterations": 100
+        }
+    }
