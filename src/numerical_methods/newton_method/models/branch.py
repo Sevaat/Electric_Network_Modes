@@ -236,7 +236,7 @@ class Transformer3(BaseModel):
                             if dict_t3[key_node] == node.name:
                                 dict_t3[key_node] = node
 
-                type_branch = dict_t3["Type (LINE, T2, T3)"]
+                type_branch = dict_t3["Type (Line, T2, T3)"]
                 high = dict_t3["Node (HV)"]
                 high_impedance = complex(dict_t3["High_impedance, Ohm"]["Real"],
                                          dict_t3["High_impedance, Ohm"]["Imaginary"])

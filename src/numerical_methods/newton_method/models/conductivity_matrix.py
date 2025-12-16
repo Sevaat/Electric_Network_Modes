@@ -32,7 +32,6 @@ def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer
         else:
             raise ValueError
 
-
     for t2 in transformer2:
         if t2.impedance != 0:
             i = nodes.index(t2.high)
@@ -69,12 +68,12 @@ def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer
                 conductivity_matrix[m, j] = -yj * kij
                 conductivity_matrix[j, m] = -yj * kij
                 conductivity_matrix[m, m] += yj
-                conductivity_matrix[j, j] += kij**2 + yj
+                conductivity_matrix[j, j] += kij**2 * yj
                 # обмотка СН (от нейтрального узла m к узлу k)
                 conductivity_matrix[m, k] = -yk * kik
                 conductivity_matrix[k, m] = -yk * kik
                 conductivity_matrix[m, m] += yk
-                conductivity_matrix[k, k] += kik**2 + yk
+                conductivity_matrix[k, k] += kik**2 * yk
             else:
                 raise ValueError
         else:
