@@ -20,17 +20,6 @@ class Methods:
         self.nodes = [Node.from_dict(node) for node in data["NODES"]]
         self.branches = [new_branch(branch, self.nodes) for branch in data["BRANCHES"]]
         self.parameters = Parameters.from_dict(data["PARAMETERS"])
-        for branch in self.branches:
-            if isinstance(branch, Transformer3):
-                dict_t3 ={
-                    "name": f"T3_{branch.high}_{branch.middle}_{branch.low}",
-                    "type_node": "L",
-                    "power": complex(0, 0),
-                    "voltage": complex(0, 0),
-                }
-                node = Node.from_dict(dict_t3)
-                branch.neutral_node = node
-                self.nodes.append(node)
 
     @staticmethod
     def _load() -> Dict[str, Any]:

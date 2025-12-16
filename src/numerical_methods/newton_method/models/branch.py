@@ -197,7 +197,6 @@ class Transformer3(BaseModel):
     low_power_losses: Optional[complex] = None  # потери в высшей стороны
     tr_rat_high_middle: Union[float, int]  # коэффициент трансформации с ВН на СН
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на НН
-    neutral_node: Optional[Node] = None  # имя нейтрального трансформаторного узла
 
     @classmethod
     def from_dict(cls, dict_t3: Dict[str, Any], nodes: List[Node]) -> Self:

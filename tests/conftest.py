@@ -61,13 +61,7 @@ def nodes_t3():
         power=complex(50, 25),
         voltage=complex(10, 0)
     )
-    neutral = Node(
-        name="Neutral",
-        type_node="L",
-        power=complex(0, 0),
-        voltage=complex(0, 0)
-    )
-    return [hv, mv, lv, neutral]
+    return [hv, mv, lv]
 
 
 @pytest.fixture

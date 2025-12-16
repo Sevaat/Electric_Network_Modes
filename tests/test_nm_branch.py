@@ -173,30 +173,11 @@ def test_transformer3_valid_creation(nodes_t3):
         low_impedance=complex(0.2, 2.5),
         tr_rat_high_middle=3.14,
         tr_rat_high_low=11.0,
-        neutral_node=nodes_t3[3]
     )
     assert t3.type_branch == "T3"
     assert t3.high == nodes_t3[0]
     assert t3.middle == nodes_t3[1]
     assert t3.low == nodes_t3[2]
-    assert t3.neutral_node == nodes_t3[3]
-
-def test_transformer3_without_neutral(nodes_t3):
-    """Тест T3 без нейтрального узла (None)"""
-    t3 = Transformer3(
-        type_branch="T3",
-        high=nodes_t3[0],
-        high_impedance=complex(0.1, 1.5),
-        high_conductivity=complex(0.001, -0.002),
-        middle=nodes_t3[1],
-        middle_impedance=complex(0.15, 2.0),
-        low=nodes_t3[2],
-        low_impedance=complex(0.2, 2.5),
-        tr_rat_high_middle=3.14,
-        tr_rat_high_low=11.0,
-        neutral_node=None
-    )
-    assert t3.neutral_node is None
 
 def test_transformer3_impedance_types(nodes_t3):
     """Тест различных типов данных для сопротивлений T3"""
@@ -211,7 +192,6 @@ def test_transformer3_impedance_types(nodes_t3):
         low_impedance=complex(0.2, 2.5),
         tr_rat_high_middle=3,  # int
         tr_rat_high_low=11.0,  # float
-        neutral_node=nodes_t3[3]
     )
     assert isinstance(t3.tr_rat_high_middle, int)
     assert isinstance(t3.tr_rat_high_low, float)

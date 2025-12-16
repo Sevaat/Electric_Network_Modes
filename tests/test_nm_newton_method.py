@@ -90,22 +90,10 @@ def test_newton_method_t3(test_data_t3):
     branches = [new_branch(branch, nodes) for branch in test_data_t3["BRANCHES"]]
     parameters = Parameters.from_dict(test_data_t3["PARAMETERS"])
 
-    for branch in branches:
-        if isinstance(branch, Transformer3):
-            dict_t3 = {
-                "Name": f"T3_{branch.high}_{branch.middle}_{branch.low}",
-                "Node type (L, S, LS)": "L",
-                "Power, MVA": {"Real": 0, "Imaginary": 0},
-                "Voltage, kV": {"Real": 240, "Imaginary": 0},
-            }
-            node = Node.from_dict(dict_t3)
-            branch.neutral_node = node
-            nodes.append(node)
-
     nodes, branches = NewtonMethod.run(nodes, branches, parameters)
 
-    assert abs(nodes[1].voltage - complex(0, 0)) < 1e-3
-    assert abs(nodes[2].voltage - complex(11, 0)) < 1e-3
+    assert abs(nodes[1].voltage - complex(120.616, -7.873)) < 1e-3
+    assert abs(nodes[2].voltage - complex(10.674, -1.311)) < 1e-3
 
 
 
