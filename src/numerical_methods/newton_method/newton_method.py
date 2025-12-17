@@ -249,15 +249,17 @@ class NewtonMethod(ABC):
         :return: список ветвей
         """
         for branch in branches:
-            if (isinstance(branch, Line) or isinstance(branch, Transformer2)) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current**2 * branch.impedance
+            if isinstance(branch, Line) and isinstance(branch.current, complex):
+                branch.power_losses = branch.current ** 2 * branch.impedance
+            elif isinstance(branch, Transformer2) and isinstance(branch.current, complex):
+                branch.power_losses = branch.current ** 2 * branch.impedance + branch.high.voltage**2 * branch.conductivity
             elif (
                 isinstance(branch, Transformer3)
                 and isinstance(branch.high_current, complex)
                 and isinstance(branch.middle_current, complex)
                 and isinstance(branch.low_current, complex)
             ):
-                s_h = branch.high.voltage * branch.high_current.conjugate()
+                s_h = branch.high.voltage * branch.high_current.conjugate() + branch.high.voltage**2 * branch.high_conductivity
                 s_m = branch.middle.voltage * (-branch.middle_current).conjugate()
                 s_l = branch.low.voltage * (-branch.low_current).conjugate()
                 ds = s_h + s_m + s_l
