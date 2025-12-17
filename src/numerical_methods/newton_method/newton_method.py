@@ -210,10 +210,12 @@ class NewtonMethod(ABC):
         return nodes
 
     @staticmethod
-    def _currents(branches: List[Line | Transformer2 | Transformer3]) -> List[Line | Transformer2 | Transformer3]:
+    def _currents(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], conductivity_matrix: numpy.ndarray) -> List[Line | Transformer2 | Transformer3]:
         """
         Расчет комплексных токов в ветвях
+        :param nodes: список узлов
         :param branches: список ветвей
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
         :return: список ветвей
         """
         for branch in branches:
@@ -221,10 +223,20 @@ class NewtonMethod(ABC):
                 branch.current = (branch.start.voltage - branch.end.voltage) / branch.impedance
             elif isinstance(branch, Transformer2):
                 branch.current = (branch.high.voltage - branch.low.voltage) / branch.impedance
-            elif isinstance(branch, Transformer3) and isinstance(branch.neutral_node, Node):
-                branch.high_current = (branch.high.voltage - branch.neutral_node.voltage) / branch.high_impedance
-                branch.middle_current = (branch.neutral_node.voltage - branch.middle.voltage) / branch.middle_impedance
-                branch.low_current = (branch.neutral_node.voltage - branch.low.voltage) / branch.low_impedance
+            elif isinstance(branch, Transformer3):
+                h = nodes.index(branch.high)
+                m = nodes.index(branch.middle)
+                l = nodes.index(branch.low)
+                i_hm = (branch.high.voltage - branch.middle.voltage) * conductivity_matrix[h, m]
+                i_hl = (branch.high.voltage - branch.low.voltage) * conductivity_matrix[h, l]
+                i_ml = (branch.middle.voltage - branch.low.voltage) * conductivity_matrix[m, l]
+                i_h = i_hm + i_hl
+                i_m = i_hm - i_ml
+                i_l = i_hl + i_ml
+                if isinstance(i_h, complex) and isinstance(i_m, complex) and isinstance(i_l, complex):
+                    branch.high_current = i_h
+                    branch.middle_current = i_m
+                    branch.low_current = i_l
             else:
                 raise TypeError
         return branches
@@ -245,9 +257,11 @@ class NewtonMethod(ABC):
                 and isinstance(branch.middle_current, complex)
                 and isinstance(branch.low_current, complex)
             ):
-                branch.high_power_losses = branch.high_current**2 * branch.high_impedance
-                branch.middle_power_losses = branch.middle_current**2 * branch.middle_impedance
-                branch.low_power_losses = branch.low_current**2 * branch.low_impedance
+                s_h = branch.high.voltage * branch.high_current.conjugate()
+                s_m = branch.middle.voltage * (-branch.middle_current).conjugate()
+                s_l = branch.low.voltage * (-branch.low_current).conjugate()
+                ds = s_h + s_m + s_l
+                branch.power_losses = ds
             else:
                 raise TypeError
         return branches
@@ -265,6 +279,6 @@ class NewtonMethod(ABC):
             jacobi_matrix = NewtonMethod._get_jacobi_matrix(nodes, conductivity_matrix)
             delta_voltage = NewtonMethod._get_delta_voltage(nodes, power_imbalance, jacobi_matrix)
             nodes = NewtonMethod._voltage_correction(nodes, delta_voltage)
-        branches = NewtonMethod._currents(branches)
+        branches = NewtonMethod._currents(nodes, branches, conductivity_matrix)
         branches = NewtonMethod._power_losses(branches)
         return nodes, branches

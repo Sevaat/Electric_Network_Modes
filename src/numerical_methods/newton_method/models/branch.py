@@ -186,15 +186,13 @@ class Transformer3(BaseModel):
     high_impedance: complex  # сопротивление ВН (активное, реактивное)
     high_conductivity: complex  # проводимость ВН (активная, реактивная)
     high_current: Optional[complex] = None  # ток ВН
-    high_power_losses: Optional[complex] = None  # потери ВН
     middle: Node  # имя узла средней стороны
     middle_impedance: complex  # сопротивление ВН (активное, реактивное)
     middle_current: Optional[complex] = None  # ток в средней стороны
-    middle_power_losses: Optional[complex] = None  # потери в высшей стороны
     low: Node  # имя узла низшей стороны
     low_impedance: complex  # сопротивление ВН (активное, реактивное)
     low_current: Optional[complex] = None  # ток в средней стороны
-    low_power_losses: Optional[complex] = None  # потери в высшей стороны
+    power_losses: Optional[complex] = None  # потери в трансформаторе
     tr_rat_high_middle: Union[float, int]  # коэффициент трансформации с ВН на СН
     tr_rat_high_low: Union[float, int]  # коэффициент трансформации с ВН на НН
 
@@ -276,12 +274,8 @@ class Transformer3(BaseModel):
         high_current = None
         middle_current = None
         low_current = None
-        high_real_power_losses = None
-        high_imag_power_losses = None
-        middle_real_power_losses = None
-        middle_imag_power_losses = None
-        low_real_power_losses = None
-        low_imag_power_losses = None
+        real_power_losses = None
+        imag_power_losses = None
         if isinstance(self.high_current, complex):
             high_current = abs(self.high_current) * 1000
         else:
@@ -294,19 +288,9 @@ class Transformer3(BaseModel):
             low_current = abs(self.low_current) * 1000
         else:
             raise TypeError
-        if isinstance(self.high_power_losses, complex):
-            high_real_power_losses = self.high_power_losses.real
-            high_imag_power_losses = self.high_power_losses.imag
-        else:
-            raise TypeError
-        if isinstance(self.middle_power_losses, complex):
-            middle_real_power_losses = self.middle_power_losses.real
-            middle_imag_power_losses = self.middle_power_losses.imag
-        else:
-            raise TypeError
-        if isinstance(self.low_power_losses, complex):
-            low_real_power_losses = self.low_power_losses.real
-            low_imag_power_losses = self.low_power_losses.imag
+        if isinstance(self.power_losses, complex):
+            real_power_losses = self.power_losses.real
+            imag_power_losses = self.power_losses.imag
         else:
             raise TypeError
         return {
@@ -317,34 +301,14 @@ class Transformer3(BaseModel):
             "High impedance, Ohm": {"Real": self.high_impedance.real, "Imaginary": self.high_impedance.imag},
             "High conductivity, S": {"Real": self.high_conductivity.real, "Imaginary": self.high_conductivity.imag},
             "High current, A": high_current,
-            "High power losses, MVA": {"Real": high_real_power_losses, "Imaginary": high_imag_power_losses},
             "Middle impedance, Ohm": {"Real": self.middle_impedance.real, "Imaginary": self.middle_impedance.imag},
             "Middle current, A": middle_current,
-            "Middle power losses, MVA": {"Real": middle_real_power_losses, "Imaginary": middle_imag_power_losses},
-            "Transformation ratio HV-MV": self.tr_rat_high_middle,
             "Low impedance, Ohm": {"Real": self.low_impedance.real, "Imaginary": self.low_impedance.imag},
             "Low current, A": low_current,
-            "Low power losses, MVA": {"Real": low_real_power_losses, "Imaginary": low_imag_power_losses},
+            "Transformation ratio HV-MV": self.tr_rat_high_middle,
             "Transformation ratio HV-LV": self.tr_rat_high_low,
+            "Power losses, MVA": {"Real": real_power_losses, "Imaginary": imag_power_losses},
         }
-
-    @property
-    def power_losses(self) -> complex:
-        """
-        Получить полные потери в ветвях трансформатора T3
-        :return: потери мощности
-        """
-        if (
-            isinstance(self.high_power_losses, complex)
-            and isinstance(self.middle_power_losses, complex)
-            and isinstance(self.low_power_losses, complex)
-        ):
-            return sum([self.high_power_losses, self.middle_power_losses, self.low_power_losses])
-        else:
-            raise TypeError
-
-
-
 
 def new_branch(dict_branch: Dict[str, Any], nodes: List[Node]) -> Line | Transformer2 | Transformer3:
     """
