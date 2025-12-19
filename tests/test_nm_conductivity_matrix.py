@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from src.numerical_methods.newton_method.models.branch import Line
-from src.numerical_methods.newton_method.models.conductivity_matrix import get_conductivity_matrix
-from src.numerical_methods.newton_method.models.node import Node
+from src.models.branch import Line
+from src.models.conductivity_matrix import get_conductivity_matrix
+from src.models.node import Node
 
 
 def test_conductivity_matrix_size(simple_network):

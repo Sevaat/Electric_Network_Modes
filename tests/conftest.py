@@ -1,7 +1,7 @@
 import pytest
 
-from src.numerical_methods.newton_method.models.branch import Line, Transformer2
-from src.numerical_methods.newton_method.models.node import Node
+from src.models.branch import Line, Transformer2
+from src.models.node import Node
 
 
 @pytest.fixture

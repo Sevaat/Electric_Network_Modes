@@ -3,10 +3,10 @@ from typing import List, Optional, Tuple
 
 import numpy
 
-from src.numerical_methods.newton_method.models.branch import Line, Transformer2, Transformer3
-from src.numerical_methods.newton_method.models.conductivity_matrix import get_conductivity_matrix
-from src.numerical_methods.newton_method.models.node import Node
-from src.numerical_methods.newton_method.models.parameters import Parameters
+from src.models.branch import Line, Transformer2, Transformer3
+from src.models.conductivity_matrix import get_conductivity_matrix
+from src.models.node import Node
+from src.models.parameters import Parameters
 
 
 class NewtonMethod(ABC):
@@ -272,6 +272,13 @@ class NewtonMethod(ABC):
     def run(
         nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
     ) -> Tuple[List[Node], List[Line | Transformer2 | Transformer3]]:
+        """
+        Произвести расчет установившегося режима методом Ньютона
+        :param nodes: список узлов
+        :param branches: список ветвей
+        :param parameters: список параметров расчета
+        :return: список узлов и ветвей
+        """
         conductivity_matrix = get_conductivity_matrix(nodes, branches)
         for i in range(0, parameters.iterations):
             power_imbalance = NewtonMethod._get_power_imbalance(nodes, conductivity_matrix)
