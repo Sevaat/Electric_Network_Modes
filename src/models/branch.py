@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Self, Union
 
 from pydantic import BaseModel
 
-from src.numerical_methods.newton_method.models.node import Node
+from src.models.node import Node
 
 
 class Line(BaseModel):

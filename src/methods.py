@@ -4,10 +4,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-from src.numerical_methods.newton_method.models.branch import Line, Transformer2, Transformer3, new_branch
-from src.numerical_methods.newton_method.models.node import Node
-from src.numerical_methods.newton_method.models.parameters import Parameters
-from src.numerical_methods.newton_method.newton_method import NewtonMethod
+from src.linear_systems.matrix_method import MatrixMethod
+from src.models.branch import Line, Transformer2, Transformer3, new_branch
+from src.models.node import Node
+from src.models.parameters import Parameters
+from src.nonlinear_systems.newton_method import NewtonMethod
 
 
 class Methods:
@@ -73,4 +74,12 @@ class Methods:
         :return:
         """
         self.nodes, self.branches = NewtonMethod.run(self.nodes, self.branches, self.parameters)
+        self._save()
+
+    def matrix_method(self) -> None:
+        """
+        Рассчитать режим методом Ньютона
+        :return:
+        """
+        self.nodes, self.branches = MatrixMethod.run(self.nodes, self.branches, self.parameters)
         self._save()

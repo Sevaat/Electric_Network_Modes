@@ -1,10 +1,8 @@
-import numpy
-
-from src.numerical_methods.newton_method.models.branch import new_branch, Transformer3
-from src.numerical_methods.newton_method.models.conductivity_matrix import get_conductivity_matrix
-from src.numerical_methods.newton_method.models.node import Node
-from src.numerical_methods.newton_method.models.parameters import Parameters
-from src.numerical_methods.newton_method.newton_method import NewtonMethod
+from src.models.branch import new_branch
+from src.models.conductivity_matrix import get_conductivity_matrix
+from src.models.node import Node
+from src.models.parameters import Parameters
+from src.nonlinear_systems.newton_method import NewtonMethod
 
 
 def test_newton_method_line(test_data_line):

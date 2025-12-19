@@ -1,6 +1,6 @@
 import pytest
 
-from src.numerical_methods.newton_method.models.branch import Line, Transformer2, Transformer3
+from src.models.branch import Line, Transformer2, Transformer3
 
 
 def test_line_valid_creation(nodes_line):

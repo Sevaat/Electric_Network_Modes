@@ -2,8 +2,8 @@ from typing import List
 
 import numpy
 
-from src.numerical_methods.newton_method.models.branch import Line, Transformer2, Transformer3
-from src.numerical_methods.newton_method.models.node import Node
+from src.models.branch import Line, Transformer2, Transformer3
+from src.models.node import Node
 
 
 def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3]) -> numpy.ndarray:

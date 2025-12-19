@@ -1,6 +1,6 @@
 import pytest
 
-from src.numerical_methods.newton_method.models.node import Node
+from src.models.node import Node
 
 
 def test_node_valid_creation():

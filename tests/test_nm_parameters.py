@@ -1,6 +1,6 @@
 import pytest
 
-from src.numerical_methods.newton_method.models.parameters import Parameters
+from src.models.parameters import Parameters
 
 
 def test_parameters_valid_creation():
