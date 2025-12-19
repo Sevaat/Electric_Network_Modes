@@ -1,0 +1,149 @@
+{
+  "NODES": [
+    {
+      "Name": "0",
+      "Node type (L, S, LS)": "L",
+      "Power, MVA": {
+        "Real": 124,
+        "Imaginary": 31.08
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
+    },
+    {
+      "Name": "1",
+      "Node type (L, S, LS)": "L",
+      "Power, MVA": {
+        "Real": 96,
+        "Imaginary": 19.49
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
+    },
+    {
+      "Name": "2",
+      "Node type (L, S, LS)": "L",
+      "Power, MVA": {
+        "Real": 104,
+        "Imaginary": 34.18
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
+    },
+    {
+      "Name": "3",
+      "Node type (L, S, LS)": "LS",
+      "Power, MVA": {
+        "Real": 106,
+        "Imaginary": 21.52
+      },
+      "Voltage, kV": {
+        "Real": 220,
+        "Imaginary": 0
+      }
+    },
+    {
+      "Name": "4",
+      "Node type (L, S, LS)": "S",
+      "Power, MVA": {
+        "Real": 0,
+        "Imaginary": 0
+      },
+      "Voltage, kV": {
+        "Real": 242,
+        "Imaginary": 0
+      }
+    }
+  ],
+  "BRANCHES": [
+    {
+      "Node (start)": "3",
+      "Node (end)": "4",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 4.9,
+        "Imaginary": 18.41
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 5.42e-5
+      }
+    },
+    {
+      "Node (start)": "0",
+      "Node (end)": "4",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 3.71,
+        "Imaginary": 22.39
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 7.11e-5
+      }
+    },
+    {
+      "Node (start)": "0",
+      "Node (end)": "1",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 4.2,
+        "Imaginary": 19.41
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 5.91e-5
+      }
+    },
+    {
+      "Node (start)": "1",
+      "Node (end)": "4",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 6.81,
+        "Imaginary": 31.49
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 9.58e-5
+      }
+    },
+    {
+      "Node (start)": "2",
+      "Node (end)": "3",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 2.73,
+        "Imaginary": 16.48
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 2.09e-4
+      }
+    },
+    {
+      "Node (start)": "1",
+      "Node (end)": "2",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 5.37,
+        "Imaginary": 20.16
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 5.94e-5
+      }
+    }
+  ],
+  "PARAMETERS": {
+    "Nominal voltage, kV": 220,
+    "Accuracy": 0.001,
+    "Max iterations": 100
+  }
+}

@@ -27,7 +27,7 @@ class Methods:
         Читать JSON файл
         :return:
         """
-        filepath = str(Path(__file__).resolve().parent.parent.parent.parent / "data")
+        filepath = str(Path(__file__).resolve().parent.parent / "data")
         os.makedirs(filepath, exist_ok=True)
         filepath = f"{filepath}/data_nm.json"
         data = {}
@@ -48,7 +48,7 @@ class Methods:
         Запись в JSON файл
         :return:
         """
-        filepath = str(Path(__file__).resolve().parent.parent.parent.parent / "result")
+        filepath = str(Path(__file__).resolve().parent.parent / "result")
         os.makedirs(filepath, exist_ok=True)
         filepath = f"{filepath}/result_{datetime.now().strftime("%d.%m.%Y_%H-%M-%S")}.json"
         try:
@@ -67,12 +67,10 @@ class Methods:
         except Exception as e:
             print(f"Произошла ошибка: {e}")
 
-    def newton_method(
-        self, nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
-    ) -> None:
+    def newton_method(self) -> None:
         """
         Рассчитать режим методом Ньютона
         :return:
         """
-        self.nodes, self.branches = NewtonMethod.run(nodes, branches, parameters)
+        self.nodes, self.branches = NewtonMethod.run(self.nodes, self.branches, self.parameters)
         self._save()

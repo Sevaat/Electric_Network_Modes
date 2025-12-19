@@ -1,7 +1,9 @@
 from src.methods import Methods
 
 def main():
-    Methods.newton_method()
+    methods = Methods()
+    methods.newton_method()
+
 
 
 if __name__ == '__main__':
