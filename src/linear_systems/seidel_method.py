@@ -10,7 +10,7 @@ from src.models.node import Node
 from src.models.parameters import Parameters
 
 
-class SimpleIterationMethod(ABC):
+class SeidelMethod(ABC):
     @staticmethod
     def _get_node_s(nodes: List[Node]) -> int:
         """Получить номер узла-источника (S)"""
@@ -25,7 +25,7 @@ class SimpleIterationMethod(ABC):
     def _get_matrix_b(nodes: List[Node], parameters: Parameters, conductivity_matrix: np.ndarray) -> np.ndarray:
         """Получить матрицу B из уравнения AX=B"""
         matrix_b = []
-        node_s = SimpleIterationMethod._get_node_s(nodes)
+        node_s = SeidelMethod._get_node_s(nodes)
         for i, node in enumerate(nodes):
             if i != node_s:
                 s = node.power
@@ -107,18 +107,16 @@ class SimpleIterationMethod(ABC):
         :return: список узлов и ветвей
         """
         conductivity_matrix = get_conductivity_matrix(nodes, branches)
-        node_s = SimpleIterationMethod._get_node_s(nodes)
+        node_s = SeidelMethod._get_node_s(nodes)
 
         # матрица проводимостей без столбца и строки базисного узла
         matrix_y = np.delete(np.delete(conductivity_matrix, node_s, axis=0), node_s, axis=1)
         # матрица свободных членов без базисного узла
-        matrix_b = SimpleIterationMethod._get_matrix_b(nodes, parameters, conductivity_matrix)
+        matrix_b = SeidelMethod._get_matrix_b(nodes, parameters, conductivity_matrix)
         # матрица начальных приближений напряжений
         matrix_u = [node.voltage for node in nodes if node.type_node != "S"]
 
         for iteration in range(parameters.iterations):
-            new_matrix_u: List[complex] = []
-
             for i in range(len(matrix_u)):
                 k = 1 / matrix_y[i, i]
                 u_i = 0
@@ -126,10 +124,9 @@ class SimpleIterationMethod(ABC):
                     if j != i:
                         u_i -= matrix_y[i, j] * k * matrix_u[j]
                 u_i += matrix_b[i] * k
-                new_matrix_u.append(u_i)
+                matrix_u[i] = u_i
 
-            matrix_u = deepcopy(new_matrix_u)
-            if SimpleIterationMethod._condition(matrix_u, matrix_y, matrix_b, parameters):
+            if SeidelMethod._condition(matrix_u, matrix_y, matrix_b, parameters):
                 print(f"Точность достигнута! Расчет окончен на итерации №{iteration}!")
                 break
 
@@ -139,6 +136,6 @@ class SimpleIterationMethod(ABC):
                 node.voltage = matrix_u[j]
                 j += 1
 
-        branches = SimpleIterationMethod._currents(nodes, branches, conductivity_matrix)
-        branches = SimpleIterationMethod._power_losses(branches)
+        branches = SeidelMethod._currents(nodes, branches, conductivity_matrix)
+        branches = SeidelMethod._power_losses(branches)
         return nodes, branches
