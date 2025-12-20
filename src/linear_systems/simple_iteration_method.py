@@ -1,4 +1,5 @@
 from abc import ABC
+from copy import deepcopy
 from typing import List, Tuple
 
 import numpy as np
@@ -9,8 +10,7 @@ from src.models.node import Node
 from src.models.parameters import Parameters
 
 
-class GaussMethod(ABC):
-
+class SimpleIterationMethod(ABC):
     @staticmethod
     def _get_node_s(nodes: List[Node]) -> int:
         """Получить номер узла-источника (S)"""
@@ -25,15 +25,24 @@ class GaussMethod(ABC):
     def _get_matrix_b(nodes: List[Node], parameters: Parameters, conductivity_matrix: np.ndarray) -> np.ndarray:
         """Получить матрицу B из уравнения AX=B"""
         matrix_b = []
-        node_s = GaussMethod._get_node_s(nodes)
+        node_s = SimpleIterationMethod._get_node_s(nodes)
         for i, node in enumerate(nodes):
             if i != node_s:
                 s = node.power
                 if node.type_node != "LS":
                     s = -s
-                b = s.conjugate()/3**0.5/parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[node_s].voltage
+                b = s.conjugate() / 3 ** 0.5 / parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[
+                    node_s].voltage
                 matrix_b.append(b)
         return np.array(matrix_b)
+
+    @staticmethod
+    def _condition(matrix_u: List[complex], new_matrix_u: List[complex], parameters: Parameters) -> bool:
+        """Проверять на достижение точности расчета"""
+        for i in range(len(matrix_u)):
+            if abs(matrix_u[i] - new_matrix_u[i]) > parameters.accuracy:
+                return False
+        return True
 
     @staticmethod
     def _currents(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3],
@@ -90,27 +99,47 @@ class GaussMethod(ABC):
             nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
     ) -> Tuple[List[Node], List[Line | Transformer2 | Transformer3]]:
         """
-        Произвести расчет установившегося режима методом Гаусса
+        Произвести расчет установившегося режима методом простой итерации
         :param nodes: список узлов
         :param branches: список ветвей
         :param parameters: список параметров расчета
         :return: список узлов и ветвей
         """
         conductivity_matrix = get_conductivity_matrix(nodes, branches)
+        node_s = SimpleIterationMethod._get_node_s(nodes)
 
-        node_s = GaussMethod._get_node_s(nodes)
-        matrix_a = np.delete(np.delete(conductivity_matrix, node_s, axis=0), node_s, axis=1)
+        # матрица проводимостей без столбца и строки базисного узла
+        matrix_y = np.delete(np.delete(conductivity_matrix, node_s, axis=0), node_s, axis=1)
+        # матрица свободных членов без базисного узла
+        matrix_b = SimpleIterationMethod._get_matrix_b(nodes, parameters, conductivity_matrix)
+        # матрица начальных приближений напряжений
+        matrix_u = [node.voltage for node in nodes if node.type_node != "S"]
 
-        matrix_b = GaussMethod._get_matrix_b(nodes, parameters, conductivity_matrix)
+        for iteration in range(parameters.iterations):
+            new_matrix_u: List[complex] = []
 
-        matrix_x = np.linalg.solve(matrix_a, matrix_b)
+            for i in range(len(matrix_u)):
+                k = 1 / matrix_y[i, i]
+                u_i = 0
+                for j in range(len(matrix_u)):
+                    if j != i:
+                        u_i -= matrix_y[i, j] * k * matrix_u[j]
+                u_i += matrix_b[i] * k
+                new_matrix_u.append(u_i)
+
+            if SimpleIterationMethod._condition(matrix_u, new_matrix_u, parameters):
+                matrix_u = deepcopy(new_matrix_u)
+                print(f"Точность достигнута! Расчет окончен на итерации №{iteration}!")
+                break
+
+            matrix_u = deepcopy(new_matrix_u)
 
         j = 0
         for i, node in enumerate(nodes):
             if i != node_s:
-                node.voltage = matrix_x[j]
+                node.voltage = matrix_u[j]
                 j += 1
 
-        branches = GaussMethod._currents(nodes, branches, conductivity_matrix)
-        branches = GaussMethod._power_losses(branches)
+        branches = SimpleIterationMethod._currents(nodes, branches, conductivity_matrix)
+        branches = SimpleIterationMethod._power_losses(branches)
         return nodes, branches
