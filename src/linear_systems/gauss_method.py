@@ -31,7 +31,7 @@ class GaussMethod(ABC):
                 s = node.power
                 if node.type_node != "LS":
                     s = -s
-                b = s.conjugate()/3**0.5/parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[node_s].voltage
+                b = s.conjugate()/parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[node_s].voltage
                 matrix_b.append(b)
         return np.array(matrix_b)
 

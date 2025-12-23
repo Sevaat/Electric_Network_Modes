@@ -31,7 +31,7 @@ class SeidelMethod(ABC):
                 s = node.power
                 if node.type_node != "LS":
                     s = -s
-                b = s.conjugate() / 3 ** 0.5 / parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[
+                b = s.conjugate() / parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[
                     node_s].voltage
                 matrix_b.append(b)
         return np.array(matrix_b)
@@ -41,7 +41,7 @@ class SeidelMethod(ABC):
         """Проверять на достижение точности расчета"""
         new_matrix_b = matrix_y.dot(matrix_u)
         for i in range(len(matrix_b)):
-            if abs(new_matrix_b[i] - matrix_b[i]) > parameters.accuracy:
+            if (new_matrix_b[i] - matrix_b[i]) > parameters.accuracy:
                 return False
         return True
 
