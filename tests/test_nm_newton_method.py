@@ -65,7 +65,6 @@ def test_newton_method_line(test_data_line):
     nodes = [Node.from_dict(node) for node in test_data_line["NODES"]]
     branches = [new_branch(branch, nodes) for branch in test_data_line["BRANCHES"]]
     parameters = Parameters.from_dict(test_data_line["PARAMETERS"])
-    conductivity_matrix = get_conductivity_matrix(nodes, branches)
     nodes, branches = NewtonMethod.run(nodes, branches, parameters)
 
     assert abs(nodes[1].voltage - complex(115.415, 0.272)) < 1e-3

@@ -27,11 +27,35 @@ class IterativeGaussianMethod(ABC):
         return np.array(matrix_b)
 
     @staticmethod
-    def _condition(matrix_b: np.ndarray, new_matrix_b: np.ndarray, parameters: Parameters) -> bool:
+    def _condition(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters) -> bool:
         """Проверять на достижение точности расчета"""
-        for i in range(len(matrix_b)):
-            if abs(new_matrix_b[i] - matrix_b[i]) > parameters.accuracy:
-                return False
+        losses = sum([branch.power_losses for branch in branches])
+        power_l = sum([node.power for node in nodes if node.type_node == "L"])
+        power_ls = sum([node.power for node in nodes if node.type_node == "LS"])
+        current_s = complex(0, 0)
+        node_s = next(node for node in nodes if node.type_node  == "S")
+        for branch in branches:
+            if branch.type_branch == "Line":
+                if branch.start == node_s:
+                    current_s += branch.current
+                if branch.end == node_s:
+                    current_s -= branch.current
+            if branch.type_branch == "Transformer2":
+                if branch.high == node_s:
+                    current_s += branch.current
+                if branch.low == node_s:
+                    current_s -= branch.current
+            if branch.type_branch == "Transformer3":
+                if branch.high == node_s:
+                    current_s += branch.high_current
+                if branch.middle == node_s:
+                    current_s += branch.middle_current
+                if branch.low == node_s:
+                    current_s += branch.low_current
+        power_s = current_s.conjugate() * node_s.voltage
+        #print(f'{power_s} {power_l} {losses} {power_ls}')
+        if abs(power_s - power_l - losses + power_ls) > parameters.accuracy:
+            return False
         return True
 
     @staticmethod
@@ -100,8 +124,6 @@ class IterativeGaussianMethod(ABC):
         node_s = next(i for i, node in enumerate(nodes) if node.type_node == "S")
         matrix_a = np.delete(np.delete(conductivity_matrix, node_s, axis=0), node_s, axis=1)
 
-
-
         for iteration in range(parameters.iterations):
             # матрица свободных членов без базисного узла на текущей итерации
             matrix_b = IterativeGaussianMethod._get_matrix_b(nodes, conductivity_matrix)
@@ -115,12 +137,11 @@ class IterativeGaussianMethod(ABC):
                     j += 1
             # расчет новых свободных членов
             new_matrix_b = IterativeGaussianMethod._get_matrix_b(nodes, conductivity_matrix)
+            branches = IterativeGaussianMethod._currents(nodes, branches, conductivity_matrix)
+            branches = IterativeGaussianMethod._power_losses(branches)
             # проверка по условию выхода
-            if IterativeGaussianMethod._condition(matrix_b, new_matrix_b, parameters):
+            if IterativeGaussianMethod._condition(nodes, branches, parameters):
                 print(f"Точность достигнута! Расчет окончен на итерации №{iteration}!")
                 break
             matrix_b = deepcopy(new_matrix_b)
-
-        branches = IterativeGaussianMethod._currents(nodes, branches, conductivity_matrix)
-        branches = IterativeGaussianMethod._power_losses(branches)
         return nodes, branches
