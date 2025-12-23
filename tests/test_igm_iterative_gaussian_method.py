@@ -12,8 +12,8 @@ def test_igm_line(test_data_line):
 
     nodes, branches = IterativeGaussianMethod.run(nodes, branches, parameters)
 
-    assert abs(nodes[1].voltage - complex(115.374, 0.061)) < 1e-3
-    assert abs(nodes[2].voltage - complex(112.204, -2.569)) < 1e-3
+    assert abs(nodes[1].voltage - complex(115.415, 0.272)) < 1e-3
+    assert abs(nodes[2].voltage - complex(109.643, -4.126)) < 1e-3
 
 def test_igm_t2(test_data_t2):
     """Проверка расчета итерационным методом Гаусса для сети, содержащей только двухобмоточный трансформатор"""
@@ -23,7 +23,7 @@ def test_igm_t2(test_data_t2):
     parameters = Parameters.from_dict(test_data_t2["PARAMETERS"])
     nodes, branches = IterativeGaussianMethod.run(nodes, branches, parameters)
 
-    assert abs(nodes[1].voltage - complex(11.222, -0.247)) < 1e-3
+    assert abs(nodes[1].voltage - complex(10.983, -0.405)) < 1e-3
 
 def test_igm_t3(test_data_t3):
     """Проверка расчета итерационным методом Гаусса для сети, содержащей только трехобмоточный трансформатор"""
@@ -34,5 +34,5 @@ def test_igm_t3(test_data_t3):
 
     nodes, branches = IterativeGaussianMethod.run(nodes, branches, parameters)
 
-    assert abs(nodes[1].voltage - complex(123.773, -4.773)) < 1e-3
-    assert abs(nodes[2].voltage - complex(11.154, -0.789)) < 1e-3
+    assert abs(nodes[1].voltage - complex(120.616, -7.873)) < 1e-3
+    assert abs(nodes[2].voltage - complex(10.674, -1.311)) < 1e-3
