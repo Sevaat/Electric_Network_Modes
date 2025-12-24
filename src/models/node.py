@@ -21,18 +21,22 @@ class Node(BaseModel):
         :param dict_node: словарь входных данных узла
         :return: экземпляр узла
         """
-        if any([
-            "Name" in dict_node,
-            "Node type (L, S, LS)" in dict_node,
-            "Power, MVA" in dict_node,
-            "Voltage, kV" in dict_node,
-        ]):
-            if any([
-                "Real" in dict_node["Power, MVA"],
-                "Imaginary" in dict_node["Power, MVA"],
-                "Real" in dict_node["Voltage, kV"],
-                "Imaginary" in dict_node["Voltage, kV"],
-            ]):
+        if any(
+            [
+                "Name" in dict_node,
+                "Node type (L, S, LS)" in dict_node,
+                "Power, MVA" in dict_node,
+                "Voltage, kV" in dict_node,
+            ]
+        ):
+            if any(
+                [
+                    "Real" in dict_node["Power, MVA"],
+                    "Imaginary" in dict_node["Power, MVA"],
+                    "Real" in dict_node["Voltage, kV"],
+                    "Imaginary" in dict_node["Voltage, kV"],
+                ]
+            ):
                 name = dict_node["Name"]
                 type_node = dict_node["Node type (L, S, LS)"]
                 power: complex

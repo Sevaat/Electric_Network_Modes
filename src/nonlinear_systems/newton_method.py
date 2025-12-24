@@ -30,16 +30,32 @@ class NewtonMethod(ABC):
             # S_i_imb_2=SUM[(Y_ij.real*U_j.imag+Y_ij.imag*U_j.real)+j*(Y_ij.real*U_j.imag+Y_ij.imag*U_j.real)]
             for j in range(len(nodes)):
                 if j != i:
-                    s_imb[1] += complex((conductivity_matrix[i, j].real * nodes[j].voltage.real - conductivity_matrix[
-                        i, j].imag * nodes[j].voltage.imag), (conductivity_matrix[i, j].real * nodes[j].voltage.real -
-                                                              conductivity_matrix[i, j].imag * nodes[j].voltage.imag))
-                    s_imb[2] += complex((conductivity_matrix[i, j].real * nodes[j].voltage.imag + conductivity_matrix[
-                        i, j].imag * nodes[j].voltage.real), (conductivity_matrix[i, j].real * nodes[j].voltage.imag +
-                                                              conductivity_matrix[i, j].imag * nodes[j].voltage.real))
+                    s_imb[1] += complex(
+                        (
+                            conductivity_matrix[i, j].real * nodes[j].voltage.real
+                            - conductivity_matrix[i, j].imag * nodes[j].voltage.imag
+                        ),
+                        (
+                            conductivity_matrix[i, j].real * nodes[j].voltage.real
+                            - conductivity_matrix[i, j].imag * nodes[j].voltage.imag
+                        ),
+                    )
+                    s_imb[2] += complex(
+                        (
+                            conductivity_matrix[i, j].real * nodes[j].voltage.imag
+                            + conductivity_matrix[i, j].imag * nodes[j].voltage.real
+                        ),
+                        (
+                            conductivity_matrix[i, j].real * nodes[j].voltage.imag
+                            + conductivity_matrix[i, j].imag * nodes[j].voltage.real
+                        ),
+                    )
             # S_i_imb_1=U_i.real*S_i_imb_1.real+j*U_i.imag*S_i_imb_1.imag
             # S_i_imb_2=U_i.imag*S_i_imb_2.real-j*U_i.real*S_i_imb_2.imag
             s_imb[1] = complex(nodes[i].voltage.real * s_imb[1].real, nodes[i].voltage.imag * s_imb[1].imag)
-            s_imb[2] = complex(nodes[i].voltage.imag * s_imb[2].real, nodes[i].voltage.real * s_imb[2].imag).conjugate()
+            s_imb[2] = complex(
+                nodes[i].voltage.imag * s_imb[2].real, nodes[i].voltage.real * s_imb[2].imag
+            ).conjugate()
             power_imbalance.append(sum(s_imb))
         return power_imbalance
 
@@ -153,55 +169,6 @@ class NewtonMethod(ABC):
                 nodes[i].voltage_correction(delta_voltage[j])
                 j += 1
         return nodes
-
-    @staticmethod
-    def _currents(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], conductivity_matrix: numpy.ndarray) -> List[Line | Transformer2 | Transformer3]:
-        """Расчет комплексных токов в ветвях"""
-        for branch in branches:
-            if isinstance(branch, Line):
-                branch.current = (branch.start.voltage - branch.end.voltage) / branch.impedance
-            elif isinstance(branch, Transformer2):
-                branch.current = (branch.high.voltage - branch.low.voltage) / branch.impedance
-            elif isinstance(branch, Transformer3):
-                h = nodes.index(branch.high)
-                m = nodes.index(branch.middle)
-                l = nodes.index(branch.low)
-                i_hm = (branch.high.voltage - branch.middle.voltage) * conductivity_matrix[h, m]
-                i_hl = (branch.high.voltage - branch.low.voltage) * conductivity_matrix[h, l]
-                i_ml = (branch.middle.voltage - branch.low.voltage) * conductivity_matrix[m, l]
-                i_h = i_hm + i_hl
-                i_m = i_hm - i_ml
-                i_l = i_hl + i_ml
-                if isinstance(i_h, complex) and isinstance(i_m, complex) and isinstance(i_l, complex):
-                    branch.high_current = i_h
-                    branch.middle_current = i_m
-                    branch.low_current = i_l
-            else:
-                raise TypeError
-        return branches
-
-    @staticmethod
-    def _power_losses(branches: List[Line | Transformer2 | Transformer3]) -> List[Line | Transformer2 | Transformer3]:
-        """Расчет потерь мощности в элементах сети"""
-        for branch in branches:
-            if isinstance(branch, Line) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current ** 2 * branch.impedance
-            elif isinstance(branch, Transformer2) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current ** 2 * branch.impedance + branch.high.voltage**2 * branch.conductivity
-            elif (
-                isinstance(branch, Transformer3)
-                and isinstance(branch.high_current, complex)
-                and isinstance(branch.middle_current, complex)
-                and isinstance(branch.low_current, complex)
-            ):
-                s_h = branch.high.voltage * branch.high_current.conjugate() + branch.high.voltage**2 * branch.high_conductivity
-                s_m = branch.middle.voltage * (-branch.middle_current).conjugate()
-                s_l = branch.low.voltage * (-branch.low_current).conjugate()
-                ds = s_h + s_m + s_l
-                branch.power_losses = ds
-            else:
-                raise TypeError
-        return branches
 
     @staticmethod
     def run(

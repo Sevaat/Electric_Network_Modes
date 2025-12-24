@@ -31,13 +31,14 @@ class SimpleIterationMethod(ABC):
                 s = node.power
                 if node.type_node != "LS":
                     s = -s
-                b = s.conjugate() / parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[
-                    node_s].voltage
+                b = s.conjugate() / parameters.nominal_voltage - conductivity_matrix[node_s, i] * nodes[node_s].voltage
                 matrix_b.append(b)
         return np.array(matrix_b)
 
     @staticmethod
-    def _condition(matrix_u: List[complex], matrix_y: np.ndarray, matrix_b: np.ndarray, parameters: Parameters) -> bool:
+    def _condition(
+        matrix_u: List[complex], matrix_y: np.ndarray, matrix_b: np.ndarray, parameters: Parameters
+    ) -> bool:
         """Проверять на достижение точности расчета"""
         new_matrix_b = matrix_y.dot(matrix_u)
         for i in range(len(matrix_b)):
@@ -47,7 +48,7 @@ class SimpleIterationMethod(ABC):
 
     @staticmethod
     def run(
-            nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
+        nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
     ) -> Tuple[List[Node], List[Line | Transformer2 | Transformer3]]:
         """
         Произвести расчет установившегося режима методом простой итерации

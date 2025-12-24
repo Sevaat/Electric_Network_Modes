@@ -54,18 +54,18 @@ def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer
             z_m = t3.middle_impedance
             z_l = t3.low_impedance
 
-            z = z_h*z_m+z_h*z_l+z_m*z_l
+            z = z_h * z_m + z_h * z_l + z_m * z_l
 
             k_hm = t3.tr_rat_high_middle
             k_hl = t3.tr_rat_high_low
 
-            y_ii = 1/z_h - z_m*z_l/(z*z_h)
-            y_jj = k_hm**2/z_m - z_h*z_l*k_hm**2/(z*z_m)
-            y_kk = k_hl**2/z_l - z_h*z_m*k_hl**2/(z*z_l)
+            y_ii = 1 / z_h - z_m * z_l / (z * z_h)
+            y_jj = k_hm**2 / z_m - z_h * z_l * k_hm**2 / (z * z_m)
+            y_kk = k_hl**2 / z_l - z_h * z_m * k_hl**2 / (z * z_l)
 
-            y_ij_ji = - z_l*k_hm/z
-            y_ik_ki = -z_m*k_hl/z
-            y_jk_kj = -z_h*k_hm*k_hl/z
+            y_ij_ji = -z_l * k_hm / z
+            y_ik_ki = -z_m * k_hl / z
+            y_jk_kj = -z_h * k_hm * k_hl / z
 
             i = nodes.index(t3.high)
             j = nodes.index(t3.middle)
