@@ -146,8 +146,11 @@ class IterativeGaussianMethod(ABC):
                     j += 1
             # расчет новых свободных членов
             new_matrix_b = IterativeGaussianMethod._get_matrix_b(nodes, conductivity_matrix)
-            branches = IterativeGaussianMethod._currents(nodes, branches, conductivity_matrix)
-            branches = IterativeGaussianMethod._power_losses(branches)
+            for branch in branches:
+                if branch.type_branch != "T3":
+                    branch.calculate_current_losses()
+                else:
+                    branch.calculate_current_losses(nodes, conductivity_matrix)
             # проверка по условию выхода
             power_imbalance = IterativeGaussianMethod._get_power_imbalance(nodes, conductivity_matrix)
             if IterativeGaussianMethod._condition(nodes, parameters, power_imbalance):

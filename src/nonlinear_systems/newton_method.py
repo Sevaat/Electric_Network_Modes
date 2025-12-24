@@ -223,6 +223,11 @@ class NewtonMethod(ABC):
             jacobi_matrix = NewtonMethod._get_jacobi_matrix(nodes, conductivity_matrix)
             delta_voltage = NewtonMethod._get_delta_voltage(nodes, power_imbalance, jacobi_matrix)
             nodes = NewtonMethod._voltage_correction(nodes, delta_voltage)
-        branches = NewtonMethod._currents(nodes, branches, conductivity_matrix)
-        branches = NewtonMethod._power_losses(branches)
+
+        for branch in branches:
+            if branch.type_branch != "T3":
+                branch.calculate_current_losses()
+            else:
+                branch.calculate_current_losses(nodes, conductivity_matrix)
+
         return nodes, branches
