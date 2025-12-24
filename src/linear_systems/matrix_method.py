@@ -46,66 +46,6 @@ class MatrixMethod(ABC):
         return np.array(matrix_b)
 
     @staticmethod
-    def _currents(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3],
-                  conductivity_matrix: np.ndarray) -> List[Line | Transformer2 | Transformer3]:
-        """
-        Расчет комплексных токов в ветвях
-        :param nodes: список узлов
-        :param branches: список ветвей
-        :param conductivity_matrix: матрица собственных и взаимных проводимостей
-        :return: список ветвей
-        """
-        for branch in branches:
-            if isinstance(branch, Line):
-                branch.current = (branch.start.voltage - branch.end.voltage) / branch.impedance
-            elif isinstance(branch, Transformer2):
-                branch.current = (branch.high.voltage - branch.low.voltage) / branch.impedance
-            elif isinstance(branch, Transformer3):
-                h = nodes.index(branch.high)
-                m = nodes.index(branch.middle)
-                l = nodes.index(branch.low)
-                i_hm = (branch.high.voltage - branch.middle.voltage) * conductivity_matrix[h, m]
-                i_hl = (branch.high.voltage - branch.low.voltage) * conductivity_matrix[h, l]
-                i_ml = (branch.middle.voltage - branch.low.voltage) * conductivity_matrix[m, l]
-                i_h = i_hm + i_hl
-                i_m = i_hm - i_ml
-                i_l = i_hl + i_ml
-                if isinstance(i_h, complex) and isinstance(i_m, complex) and isinstance(i_l, complex):
-                    branch.high_current = i_h
-                    branch.middle_current = i_m
-                    branch.low_current = i_l
-            else:
-                raise TypeError
-        return branches
-
-    @staticmethod
-    def _power_losses(branches: List[Line | Transformer2 | Transformer3]) -> List[Line | Transformer2 | Transformer3]:
-        """
-        Расчет потерь мощности в элементах сети
-        :param branches: список ветвей
-        :return: список ветвей
-        """
-        for branch in branches:
-            if isinstance(branch, Line) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current ** 2 * branch.impedance
-            elif isinstance(branch, Transformer2) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current ** 2 * branch.impedance + branch.high.voltage ** 2 * branch.conductivity
-            elif (
-                    isinstance(branch, Transformer3)
-                    and isinstance(branch.high_current, complex)
-                    and isinstance(branch.middle_current, complex)
-                    and isinstance(branch.low_current, complex)
-            ):
-                s_h = branch.high.voltage * branch.high_current.conjugate() + branch.high.voltage ** 2 * branch.high_conductivity
-                s_m = branch.middle.voltage * (-branch.middle_current).conjugate()
-                s_l = branch.low.voltage * (-branch.low_current).conjugate()
-                ds = s_h + s_m + s_l
-                branch.power_losses = ds
-            else:
-                raise TypeError
-        return branches
-
-    @staticmethod
     def run(
             nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
     ) -> Tuple[List[Node], List[Line | Transformer2 | Transformer3]]:
@@ -131,6 +71,10 @@ class MatrixMethod(ABC):
                 node.voltage = matrix_x[j]
                 j += 1
 
-        branches = MatrixMethod._currents(nodes, branches, conductivity_matrix)
-        branches = MatrixMethod._power_losses(branches)
+        for branch in branches:
+            if branch.type_branch != "T3":
+                branch.calculate_current_losses()
+            else:
+                branch.calculate_current_losses(nodes, conductivity_matrix)
+
         return nodes, branches

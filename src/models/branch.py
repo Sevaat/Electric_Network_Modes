@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional, Self, Union
 
+import numpy as np
 from pydantic import BaseModel
 
 from src.models.node import Node
-
 
 class Line(BaseModel):
     """
@@ -83,6 +83,17 @@ class Line(BaseModel):
             "Current, A": current,
             "Power losses, MVA": {"Real": real_power_losses, "Imaginary": imag_power_losses},
         }
+
+    def calculate_current_losses(self) -> None:
+        """
+        Рассчитать ток в линии электропередачи и потери мощности
+        :return: None
+        """
+        try:
+            self.current = (self.start.voltage - self.end.voltage) / self.impedance
+            self.power_losses = 3 * self.current ** 2 * self.impedance
+        except AttributeError:
+            raise AttributeError
 
 
 class Transformer2(BaseModel):
@@ -174,6 +185,17 @@ class Transformer2(BaseModel):
             "Power losses, MVA": {"Real": real_power_losses, "Imaginary": imag_power_losses},
             "Transformation ratio HV-LV": self.tr_rat_high_low,
         }
+
+    def calculate_current_losses(self) -> None:
+        """
+        Рассчитать ток в двухобмоточном трансформаторе и потери мощности
+        :return: None
+        """
+        try:
+            self.current = (self.high.voltage - self.low.voltage) / self.impedance
+            self.power_losses = 3 * self.current ** 2 * self.impedance
+        except AttributeError:
+            raise AttributeError
 
 
 class Transformer3(BaseModel):
@@ -309,6 +331,35 @@ class Transformer3(BaseModel):
             "Transformation ratio HV-LV": self.tr_rat_high_low,
             "Power losses, MVA": {"Real": real_power_losses, "Imaginary": imag_power_losses},
         }
+
+    def calculate_current_losses(self, nodes: List[Node], conductivity_matrix: np.ndarray) -> None:
+        """
+        Рассчитать ток в трехобмоточном трансформаторе и потери мощности
+        :param nodes: список узлов
+        :param conductivity_matrix: матрица собственных и взаимных проводимостей
+        :return: None
+        """
+        try:
+            h = nodes.index(self.high)
+            m = nodes.index(self.middle)
+            l = nodes.index(self.low)
+            i_hm = (self.high.voltage - self.middle.voltage) * conductivity_matrix[h, m]
+            i_hl = (self.high.voltage - self.low.voltage) * conductivity_matrix[h, l]
+            i_ml = (self.middle.voltage - self.low.voltage) * conductivity_matrix[m, l]
+            i_h = i_hm + i_hl
+            i_m = i_hm - i_ml
+            i_l = i_hl + i_ml
+            if isinstance(i_h, complex) and isinstance(i_m, complex) and isinstance(i_l, complex):
+                self.high_current = i_h
+                self.middle_current = i_m
+                self.low_current = i_l
+            s_h = self.high.voltage * self.high_current.conjugate() + self.high.voltage ** 2 * self.high_conductivity
+            s_m = self.middle.voltage * (-self.middle_current).conjugate()
+            s_l = self.low.voltage * (-self.low_current).conjugate()
+            ds = s_h + s_m + s_l
+            self.power_losses = ds
+        except AttributeError:
+            raise AttributeError
 
 def new_branch(dict_branch: Dict[str, Any], nodes: List[Node]) -> Line | Transformer2 | Transformer3:
     """
