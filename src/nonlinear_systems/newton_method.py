@@ -14,9 +14,8 @@ class NewtonMethod(ABC):
     @staticmethod
     def _get_power_imbalance(nodes: List[Node], conductivity_matrix: numpy.ndarray) -> List[complex]:
         """Получить небалансы мощности в узлах"""
-        node_count = len(nodes)
         power_imbalance: List[complex] = []
-        for i in range(node_count):
+        for i in range(len(nodes)):
             full_power: Optional[complex] = None
             if nodes[i].type_node == "S":
                 full_power = complex(0, 0)
@@ -24,25 +23,24 @@ class NewtonMethod(ABC):
                 full_power = -nodes[i].power
             else:
                 full_power = nodes[i].power
-            real_power: List[int | float | complex] = [0, 0, 0]
-            real_power[0] = full_power.real + conductivity_matrix[i, i].real * abs(nodes[i].voltage) ** 2
-            imaginary_power: List[int | float | complex] = [0, 0, 0]
-            imaginary_power[0] = full_power.imag - conductivity_matrix[i, i].imag * abs(nodes[i].voltage) ** 2
-            for j in range(node_count):
+            # S_i_imb_0=S+Y_ii.conjugate*U_i^2
+            s_imb: List[int | float | complex] = [0, 0, 0]
+            s_imb[0] = full_power + conductivity_matrix[i, i].conjugate() * abs(nodes[i].voltage) ** 2
+            # S_i_imb_1=SUM[(Y_ij.real*U_j.real-Y_ij.imag*U_j.imag)+j*(Y_ij.real*U_j.real-Y_ij.imag*U_j.imag)]
+            # S_i_imb_2=SUM[(Y_ij.real*U_j.imag+Y_ij.imag*U_j.real)+j*(Y_ij.real*U_j.imag+Y_ij.imag*U_j.real)]
+            for j in range(len(nodes)):
                 if j != i:
-                    real_power[1] += conductivity_matrix[i, j].real * nodes[j].voltage.real
-                    real_power[1] -= conductivity_matrix[i, j].imag * nodes[j].voltage.imag
-                    real_power[2] += conductivity_matrix[i, j].real * nodes[j].voltage.imag
-                    real_power[2] += conductivity_matrix[i, j].imag * nodes[j].voltage.real
-                    imaginary_power[1] += conductivity_matrix[i, j].real * nodes[j].voltage.real
-                    imaginary_power[1] -= conductivity_matrix[i, j].imag * nodes[j].voltage.imag
-                    imaginary_power[2] += conductivity_matrix[i, j].real * nodes[j].voltage.imag
-                    imaginary_power[2] += conductivity_matrix[i, j].imag * nodes[j].voltage.real
-            real_power[1] = nodes[i].voltage.real * real_power[1]
-            real_power[2] = nodes[i].voltage.imag * real_power[2]
-            imaginary_power[1] = nodes[i].voltage.imag * imaginary_power[1]
-            imaginary_power[2] = -nodes[i].voltage.real * imaginary_power[2]
-            power_imbalance.append(complex(sum(real_power), sum(imaginary_power)))
+                    s_imb[1] += complex((conductivity_matrix[i, j].real * nodes[j].voltage.real - conductivity_matrix[
+                        i, j].imag * nodes[j].voltage.imag), (conductivity_matrix[i, j].real * nodes[j].voltage.real -
+                                                              conductivity_matrix[i, j].imag * nodes[j].voltage.imag))
+                    s_imb[2] += complex((conductivity_matrix[i, j].real * nodes[j].voltage.imag + conductivity_matrix[
+                        i, j].imag * nodes[j].voltage.real), (conductivity_matrix[i, j].real * nodes[j].voltage.imag +
+                                                              conductivity_matrix[i, j].imag * nodes[j].voltage.real))
+            # S_i_imb_1=U_i.real*S_i_imb_1.real+j*U_i.imag*S_i_imb_1.imag
+            # S_i_imb_2=U_i.imag*S_i_imb_2.real-j*U_i.real*S_i_imb_2.imag
+            s_imb[1] = complex(nodes[i].voltage.real * s_imb[1].real, nodes[i].voltage.imag * s_imb[1].imag)
+            s_imb[2] = complex(nodes[i].voltage.imag * s_imb[2].real, nodes[i].voltage.real * s_imb[2].imag).conjugate()
+            power_imbalance.append(sum(s_imb))
         return power_imbalance
 
     @staticmethod
