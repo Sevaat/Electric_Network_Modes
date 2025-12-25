@@ -27,15 +27,15 @@ class Line(BaseModel):
         :param dict_line: словарь входных данных линии электропередачи
         :return: экземпляр линии электропередачи
         """
-        if any(
-            [
-                "Node (start)" in dict_line,
-                "Node (end)" in dict_line,
-                "Type (Line, T2, T3)" in dict_line,
-                "Impedance, Ohm" in dict_line,
-                "Conductivity, S" in dict_line,
-            ]
-        ):
+        fields_line = [
+            "Node (start)",
+            "Node (end)",
+            "Type (Line, T2, T3)",
+            "Impedance, Ohm",
+            "Conductivity, S"
+        ]
+
+        if presence_parameters(fields_line, dict_line):
             if any(
                 [
                     "Real" in dict_line["Impedance, Ohm"],
@@ -101,6 +101,18 @@ class Line(BaseModel):
             self.power_losses = 3 * self.current**2 * self.impedance
         except AttributeError:
             raise AttributeError
+
+def presence_parameters(fields_branch: List[str], dict_branch: Dict[str, Any]) -> bool:
+    """
+    Проверить наличие ключа в словаре
+    :param fields_branch: ключи для ветви
+    :param dict_branch: словарь данных ветви
+    :return:
+    """
+    for fb in fields_branch:
+        if fb not in dict_branch:
+            return False
+    return True
 
 
 class Transformer2(BaseModel):
