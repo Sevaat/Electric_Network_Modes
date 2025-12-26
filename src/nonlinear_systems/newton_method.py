@@ -23,40 +23,11 @@ class NewtonMethod(ABC):
                 full_power = -nodes[i].power
             else:
                 full_power = nodes[i].power
-            # S_i_imb_0=S+Y_ii.conjugate*U_i^2
-            s_imb: List[int | float | complex] = [0, 0, 0]
-            s_imb[0] = full_power + conductivity_matrix[i, i].conjugate() * abs(nodes[i].voltage) ** 2
-            # S_i_imb_1=SUM[(Y_ij.real*U_j.real-Y_ij.imag*U_j.imag)+j*(Y_ij.real*U_j.real-Y_ij.imag*U_j.imag)]
-            # S_i_imb_2=SUM[(Y_ij.real*U_j.imag+Y_ij.imag*U_j.real)+j*(Y_ij.real*U_j.imag+Y_ij.imag*U_j.real)]
+            s_imb = full_power + conductivity_matrix[i, i].conjugate() * nodes[i].voltage * nodes[i].voltage.conjugate()
             for j in range(len(nodes)):
                 if j != i:
-                    s_imb[1] += complex(
-                        (
-                            conductivity_matrix[i, j].real * nodes[j].voltage.real
-                            - conductivity_matrix[i, j].imag * nodes[j].voltage.imag
-                        ),
-                        (
-                            conductivity_matrix[i, j].real * nodes[j].voltage.real
-                            - conductivity_matrix[i, j].imag * nodes[j].voltage.imag
-                        ),
-                    )
-                    s_imb[2] += complex(
-                        (
-                            conductivity_matrix[i, j].real * nodes[j].voltage.imag
-                            + conductivity_matrix[i, j].imag * nodes[j].voltage.real
-                        ),
-                        (
-                            conductivity_matrix[i, j].real * nodes[j].voltage.imag
-                            + conductivity_matrix[i, j].imag * nodes[j].voltage.real
-                        ),
-                    )
-            # S_i_imb_1=U_i.real*S_i_imb_1.real+j*U_i.imag*S_i_imb_1.imag
-            # S_i_imb_2=U_i.imag*S_i_imb_2.real-j*U_i.real*S_i_imb_2.imag
-            s_imb[1] = complex(nodes[i].voltage.real * s_imb[1].real, nodes[i].voltage.imag * s_imb[1].imag)
-            s_imb[2] = complex(
-                nodes[i].voltage.imag * s_imb[2].real, nodes[i].voltage.real * s_imb[2].imag
-            ).conjugate()
-            power_imbalance.append(sum(s_imb))
+                    s_imb += conductivity_matrix[i, j].conjugate() * nodes[i].voltage * nodes[j].voltage.conjugate()
+            power_imbalance.append(s_imb)
         return power_imbalance
 
     @staticmethod
