@@ -13,6 +13,7 @@ class Node(BaseModel):
     voltage: complex  # напряжение в узле
     type_node: str  # тип узла
     name: str  # имя узла
+    shunt_conductivity: complex  # проводимость шунта
 
     @classmethod
     def from_dict(cls, dict_node: Dict[str, Any]) -> Any:
@@ -25,7 +26,8 @@ class Node(BaseModel):
             "Name",
             "Node type (L, S, LS)",
             ["Power, MVA", "Real", "Imaginary"],
-            ["Voltage, kV", "Real", "Imaginary"]
+            ["Voltage, kV", "Real", "Imaginary"],
+            ["Shunt conductivity, S", "Real", "Imaginary"]
         ]
 
         if presence_parameters(fields_node, dict_node):
@@ -37,7 +39,8 @@ class Node(BaseModel):
             else:
                 power = complex(dict_node["Power, MVA"]["Real"], dict_node["Power, MVA"]["Imaginary"])
             voltage = complex(dict_node["Voltage, kV"]["Real"], dict_node["Voltage, kV"]["Imaginary"])
-            return cls(name=name, type_node=type_node, power=power, voltage=voltage)
+            shunt_conductivity = complex(dict_node["Shunt conductivity, S"]["Real"], dict_node["Shunt conductivity, S"]["Imaginary"])
+            return cls(name=name, type_node=type_node, power=power, voltage=voltage, shunt_conductivity=shunt_conductivity)
         else:
             raise KeyError
 
@@ -68,6 +71,10 @@ class Node(BaseModel):
                 "Imaginary": self.voltage.imag,
                 "Magnitude": abs(self.voltage),
                 "Angle": atan2(self.voltage.imag, self.voltage.real),
+            },
+            "Shunt conductivity, S": {
+                "Real": self.shunt_conductivity.real,
+                "Imaginary": self.shunt_conductivity.imag,
             },
         }
 

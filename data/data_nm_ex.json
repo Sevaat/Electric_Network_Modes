@@ -10,6 +10,10 @@
       "Voltage, kV": {
         "Real": 220,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -21,6 +25,10 @@
       },
       "Voltage, kV": {
         "Real": 220,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -34,6 +42,10 @@
       "Voltage, kV": {
         "Real": 220,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -46,6 +58,10 @@
       "Voltage, kV": {
         "Real": 220,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -57,6 +73,10 @@
       },
       "Voltage, kV": {
         "Real": 242,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     }

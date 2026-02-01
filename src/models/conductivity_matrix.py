@@ -19,6 +19,9 @@ def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer
 
     conductivity_matrix = numpy.zeros((len(nodes), len(nodes)), dtype=complex)
 
+    for i, node in enumerate(nodes):
+        conductivity_matrix[i, i] += node.shunt_conductivity
+
     for line in lines:
         if line.impedance != 0:
             i = nodes.index(line.start)

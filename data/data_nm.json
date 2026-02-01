@@ -10,6 +10,10 @@
       "Voltage, kV": {
         "Real": 110,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -21,6 +25,10 @@
       },
       "Voltage, kV": {
         "Real": 10,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -34,6 +42,10 @@
       "Voltage, kV": {
         "Real": 10,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -45,6 +57,10 @@
       },
       "Voltage, kV": {
         "Real": 10,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -58,6 +74,10 @@
       "Voltage, kV": {
         "Real": 10,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -69,6 +89,10 @@
       },
       "Voltage, kV": {
         "Real": 10,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -82,6 +106,10 @@
       "Voltage, kV": {
         "Real": 0.380,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -93,6 +121,10 @@
       },
       "Voltage, kV": {
         "Real": 0.380,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -106,6 +138,10 @@
       "Voltage, kV": {
         "Real": 0.380,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
@@ -117,6 +153,10 @@
       },
       "Voltage, kV": {
         "Real": 0.380,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     }

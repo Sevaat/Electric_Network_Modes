@@ -54,13 +54,15 @@ def test_conductivity_matrix_zero_impedance_line():
             name="Bus_1",
             type_node="S",
             power=complex(0, 0),
-            voltage=complex(110, 0)
+            voltage=complex(110, 0),
+            shunt_conductivity = complex(0, 0)
         ),
         Node(
             name="Bus_2",
             type_node="L",
             power=complex(50, 25),
-            voltage=complex(108, 5)
+            voltage=complex(108, 5),
+            shunt_conductivity = complex(0, 0)
         )
     ]
     branches = [
@@ -83,19 +85,22 @@ def test_conductivity_matrix_complex_network():
             name="Bus_1",
             type_node="S",
             power=complex(0, 0),
-            voltage=complex(110, 0)
+            voltage=complex(110, 0),
+            shunt_conductivity = complex(0, 0)
         ),
         Node(
             name="Bus_2",
             type_node="L",
             power=complex(50, 25),
-            voltage=complex(108, 5)
+            voltage=complex(108, 5),
+            shunt_conductivity = complex(0, 0)
         ),
         Node(
             name="Bus_3",
             type_node="L",
             power=complex(30, 15),
-            voltage=complex(107, 3)
+            voltage=complex(107, 3),
+            shunt_conductivity = complex(0, 0)
         )
     ]
     branches = [
@@ -129,13 +134,15 @@ def test_conductivity_matrix_values_line():
             name="Bus_1",
             type_node="S",
             power=complex(0, 0),
-            voltage=complex(110, 0)
+            voltage=complex(110, 0),
+            shunt_conductivity = complex(0, 0)
         ),
         Node(
             name="Bus_2",
             type_node="L",
             power=complex(50, 25),
-            voltage=complex(108, 5)
+            voltage=complex(108, 5),
+            shunt_conductivity = complex(0, 0)
         )
     ]
     impedance = complex(2.0, 10.0)

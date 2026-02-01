@@ -11,13 +11,15 @@ def nodes_line():
         name="Node_1",
         type_node="S",
         power=complex(0, 0),
-        voltage=complex(110, 0)
+        voltage=complex(110, 0),
+        shunt_conductivity=complex(0, 0)
     )
     node2 = Node(
         name="Node_2",
         type_node="L",
         power=complex(50, 25),
-        voltage=complex(108, 5)
+        voltage=complex(108, 5),
+        shunt_conductivity=complex(0, 0)
     )
     return [node1, node2]
 
@@ -29,13 +31,15 @@ def nodes_t2():
         name="HV_Bus",
         type_node="S",
         power=complex(0, 0),
-        voltage=complex(110, 0)
+        voltage=complex(110, 0),
+        shunt_conductivity=complex(0, 0)
     )
     lv = Node(
         name="LV_Bus",
         type_node="L",
         power=complex(50, 25),
-        voltage=complex(10, 0)
+        voltage=complex(10, 0),
+        shunt_conductivity=complex(0, 0)
     )
     return [hv, lv]
 
@@ -47,19 +51,22 @@ def nodes_t3():
         name="HV_Bus",
         type_node="S",
         power=complex(0, 0),
-        voltage=complex(110, 0)
+        voltage=complex(110, 0),
+        shunt_conductivity=complex(0, 0)
     )
     mv = Node(
         name="MV_Bus",
         type_node="L",
         power=complex(30, 15),
-        voltage=complex(35, 2)
+        voltage=complex(35, 2),
+        shunt_conductivity=complex(0, 0)
     )
     lv = Node(
         name="LV_Bus",
         type_node="L",
         power=complex(50, 25),
-        voltage=complex(10, 0)
+        voltage=complex(10, 0),
+        shunt_conductivity=complex(0, 0)
     )
     return [hv, mv, lv]
 
@@ -72,13 +79,15 @@ def simple_network():
             name="Bus_1",
             type_node="S",
             power=complex(0, 0),
-            voltage=complex(110, 0)
+            voltage=complex(110, 0),
+            shunt_conductivity=complex(0, 0)
         ),
         Node(
             name="Bus_2",
             type_node="L",
             power=complex(50, 25),
-            voltage=complex(108, 5)
+            voltage=complex(108, 5),
+            shunt_conductivity=complex(0, 0)
         )
     ]
     branches = [
@@ -101,13 +110,15 @@ def network_with_transformer2():
             name="HV",
             type_node="S",
             power=complex(0, 0),
-            voltage=complex(110, 0)
+            voltage=complex(110, 0),
+            shunt_conductivity=complex(0, 0)
         ),
         Node(
             name="LV",
             type_node="L",
             power=complex(50, 25),
-            voltage=complex(10, 0)
+            voltage=complex(10, 0),
+            shunt_conductivity=complex(0, 0)
         )
     ]
     branches = [
@@ -137,6 +148,10 @@ def test_data_line():
                 "Voltage, kV": {
                     "Real": 115,
                     "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
                 }
             },
             {
@@ -149,6 +164,10 @@ def test_data_line():
                 "Voltage, kV": {
                     "Real": 110,
                     "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
                 }
             },
             {
@@ -160,6 +179,10 @@ def test_data_line():
                 },
                 "Voltage, kV": {
                     "Real": 110,
+                    "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
                     "Imaginary": 0
                 }
             }
@@ -226,6 +249,10 @@ def test_data_t2():
                 "Voltage, kV": {
                     "Real": 115,
                     "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
                 }
             },
             {
@@ -237,6 +264,10 @@ def test_data_t2():
                 },
                 "Voltage, kV": {
                     "Real": 10,
+                    "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
                     "Imaginary": 0
                 }
             }
@@ -278,6 +309,10 @@ def test_data_t3():
                 "Voltage, kV": {
                     "Real": 240,
                     "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
                 }
             },
             {
@@ -290,6 +325,10 @@ def test_data_t3():
                 "Voltage, kV": {
                     "Real": 110,
                     "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
+                    "Imaginary": 0
                 }
             },
             {
@@ -301,6 +340,10 @@ def test_data_t3():
                 },
                 "Voltage, kV": {
                     "Real": 10,
+                    "Imaginary": 0
+                },
+                "Shunt conductivity, S": {
+                    "Real": 0,
                     "Imaginary": 0
                 }
             }
