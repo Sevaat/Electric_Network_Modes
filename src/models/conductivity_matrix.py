@@ -20,7 +20,7 @@ def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer
     conductivity_matrix = numpy.zeros((len(nodes), len(nodes)), dtype=complex)
 
     for i, node in enumerate(nodes):
-        conductivity_matrix[i, i] += node.shunt_conductivity
+        conductivity_matrix[i, i] += node.shunt_conductivity.conjugate()
 
     for line in lines:
         if line.impedance != 0:
@@ -30,8 +30,8 @@ def get_conductivity_matrix(nodes: List[Node], branches: List[Line | Transformer
             y = 1 / line.impedance
             conductivity_matrix[i, j] += -y
             conductivity_matrix[j, i] += -y
-            conductivity_matrix[i, i] += y + y0 / 2
-            conductivity_matrix[j, j] += y + y0 / 2
+            conductivity_matrix[i, i] += y + y0.conjugate() / 2
+            conductivity_matrix[j, j] += y + y0.conjugate() / 2
         else:
             raise ValueError
 
