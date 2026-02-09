@@ -2,7 +2,7 @@
   "NODES": [
     {
       "Name": "1",
-      "Node type (L, S, LS)": "S",
+      "Node type (L, S)": "S",
       "Power, MVA": {
         "Real": 0,
         "Imaginary": 0
@@ -18,7 +18,7 @@
     },
     {
       "Name": "2",
-      "Node type (L, S, LS)": "L",
+      "Node type (L, S)": "L",
       "Power, MVA": {
         "Real": 0,
         "Imaginary": 0
@@ -34,7 +34,7 @@
     },
     {
       "Name": "3",
-      "Node type (L, S, LS)": "L",
+      "Node type (L, S)": "L",
       "Power, MVA": {
         "Real": 0,
         "Imaginary": 0
@@ -50,7 +50,7 @@
     },
     {
       "Name": "4",
-      "Node type (L, S, LS)": "L",
+      "Node type (L, S)": "L",
       "Power, MVA": {
         "Real": 5,
         "Imaginary": 2
@@ -66,7 +66,7 @@
     },
     {
       "Name": "5",
-      "Node type (L, S, LS)": "L",
+      "Node type (L, S)": "L",
       "Power, MVA": {
         "Real": 3,
         "Imaginary": 1
@@ -82,7 +82,7 @@
     },
     {
       "Name": "6",
-      "Node type (L, S, LS)": "L",
+      "Node type (L, S)": "L",
       "Power, MVA": {
         "Real": 5,
         "Imaginary": 2

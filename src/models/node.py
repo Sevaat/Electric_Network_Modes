@@ -24,7 +24,7 @@ class Node(BaseModel):
         """
         fields_node = [
             "Name",
-            "Node type (L, S, LS)",
+            "Node type (L, S)",
             ["Power, MVA", "Real", "Imaginary"],
             ["Voltage, kV", "Real", "Imaginary"],
             ["Shunt conductivity, S", "Real", "Imaginary"]
@@ -32,7 +32,7 @@ class Node(BaseModel):
 
         if presence_parameters(fields_node, dict_node):
             name = dict_node["Name"]
-            type_node = dict_node["Node type (L, S, LS)"]
+            type_node = dict_node["Node type (L, S)"]
             power: complex
             if type_node == "S":
                 power = complex(0, 0)
@@ -64,7 +64,7 @@ class Node(BaseModel):
         """
         return {
             "Name": self.name,
-            "Node type (L, S, LS)": self.type_node,
+            "Node type (L, S)": self.type_node,
             "Power, MVA": {"Real": self.power.real, "Imaginary": self.power.imag, "Magnitude": abs(self.power)},
             "Voltage, kV": {
                 "Real": self.voltage.real,

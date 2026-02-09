@@ -19,8 +19,6 @@ class NewtonMethod(ABC):
             full_power: Optional[complex] = None
             if nodes[i].type_node == "S":
                 full_power = complex(0, 0)
-            elif nodes[i].type_node == "LS":
-                full_power = -nodes[i].power
             else:
                 full_power = nodes[i].power
             s_imb = full_power + conductivity_matrix[i, i].conjugate() * nodes[i].voltage * nodes[i].voltage.conjugate()
