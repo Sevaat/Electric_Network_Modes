@@ -1,26 +1,18 @@
 {
   "NODES": [
     {
-      "Name": "0",
+      "Name": "1",
       "Node type (L, S, LS)": "S",
       "Power, MVA": {
         "Real": 0,
         "Imaginary": 0
       },
       "Voltage, kV": {
-        "Real": 110,
-        "Imaginary": 0
-      }
-    },
-    {
-      "Name": "1",
-      "Node type (L, S, LS)": "L",
-      "Power, MVA": {
-        "Real": 0,
+        "Real": 121,
         "Imaginary": 0
       },
-      "Voltage, kV": {
-        "Real": 10,
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -32,7 +24,11 @@
         "Imaginary": 0
       },
       "Voltage, kV": {
-        "Real": 10,
+        "Real": 110,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -46,29 +42,41 @@
       "Voltage, kV": {
         "Real": 10,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
       }
     },
     {
       "Name": "4",
       "Node type (L, S, LS)": "L",
       "Power, MVA": {
-        "Real": 0,
-        "Imaginary": 0
+        "Real": 5,
+        "Imaginary": 2
       },
       "Voltage, kV": {
         "Real": 10,
         "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0.015
       }
     },
     {
       "Name": "5",
       "Node type (L, S, LS)": "L",
       "Power, MVA": {
-        "Real": 0,
-        "Imaginary": 0
+        "Real": 3,
+        "Imaginary": 1
       },
       "Voltage, kV": {
         "Real": 10,
+        "Imaginary": 0
+      },
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     },
@@ -76,99 +84,40 @@
       "Name": "6",
       "Node type (L, S, LS)": "L",
       "Power, MVA": {
-        "Real": 0.8,
-        "Imaginary": 0.6
+        "Real": 5,
+        "Imaginary": 2
       },
       "Voltage, kV": {
-        "Real": 0.380,
+        "Real": 10,
         "Imaginary": 0
-      }
-    },
-    {
-      "Name": "7",
-      "Node type (L, S, LS)": "L",
-      "Power, MVA": {
-        "Real": 1.2,
-        "Imaginary": 0.9
       },
-      "Voltage, kV": {
-        "Real": 0.380,
-        "Imaginary": 0
-      }
-    },
-    {
-      "Name": "8",
-      "Node type (L, S, LS)": "L",
-      "Power, MVA": {
-        "Real": 0.6,
-        "Imaginary": 0.45
-      },
-      "Voltage, kV": {
-        "Real": 0.380,
-        "Imaginary": 0
-      }
-    },
-    {
-      "Name": "9",
-      "Node type (L, S, LS)": "L",
-      "Power, MVA": {
-        "Real": 1,
-        "Imaginary": 0.75
-      },
-      "Voltage, kV": {
-        "Real": 0.380,
+      "Shunt conductivity, S": {
+        "Real": 0,
         "Imaginary": 0
       }
     }
   ],
   "BRANCHES": [
     {
-      "Node (HV)": "0",
-      "Node (LV)": "1",
-      "Type (Line, T2, T3)": "T2",
-      "Impedance, Ohm": {
-        "Real": 4.38,
-        "Imaginary": 86.7
-      },
-      "Conductivity, S": {
-        "Real": 1.44e-6,
-        "Imaginary": 8.47e-6
-      },
-      "Transformation ratio HV-LV": 10.45
-    },
-    {
       "Node (start)": "1",
       "Node (end)": "2",
       "Type (Line, T2, T3)": "Line",
       "Impedance, Ohm": {
-        "Real": 0.16,
-        "Imaginary": 0.045
+        "Real": 3,
+        "Imaginary": 6.3
       },
       "Conductivity, S": {
         "Real": 0,
-        "Imaginary": 0
+        "Imaginary": 2.055e-5
       }
     },
     {
-      "Node (start)": "1",
-      "Node (end)": "3",
-      "Type (Line, T2, T3)": "Line",
-      "Impedance, Ohm": {
-        "Real": 0.256,
-        "Imaginary": 0.072
-      },
-      "Conductivity, S": {
-        "Real": 0,
-        "Imaginary": 0
-      }
-    },
-    {
-      "Node (start)": "1",
+      "Node (start)": "3",
       "Node (end)": "4",
       "Type (Line, T2, T3)": "Line",
       "Impedance, Ohm": {
-        "Real": 0.096,
-        "Imaginary": 0.027
+        "Real": 0.92,
+        "Imaginary": 0.66
       },
       "Conductivity, S": {
         "Real": 0,
@@ -176,12 +125,25 @@
       }
     },
     {
-      "Node (start)": "1",
+      "Node (start)": "3",
       "Node (end)": "5",
       "Type (Line, T2, T3)": "Line",
       "Impedance, Ohm": {
-        "Real": 0.192,
-        "Imaginary": 0.054
+        "Real": 2.36,
+        "Imaginary": 1.44
+      },
+      "Conductivity, S": {
+        "Real": 0,
+        "Imaginary": 0
+      }
+    },
+    {
+      "Node (start)": "3",
+      "Node (end)": "6",
+      "Type (Line, T2, T3)": "Line",
+      "Impedance, Ohm": {
+        "Real": 1.55,
+        "Imaginary": 1.65
       },
       "Conductivity, S": {
         "Real": 0,
@@ -190,59 +152,17 @@
     },
     {
       "Node (HV)": "2",
-      "Node (LV)": "6",
+      "Node (LV)": "3",
       "Type (Line, T2, T3)": "T2",
       "Impedance, Ohm": {
-        "Real": 1.08,
-        "Imaginary": 5.393
+        "Real": 4.39,
+        "Imaginary": 86.68
       },
       "Conductivity, S": {
-        "Real": 1.55e-5,
-        "Imaginary": 1.2e-4
+        "Real": 1.4e-6,
+        "Imaginary": 8.3e-6
       },
-      "Transformation ratio HV-LV": 25
-    },
-    {
-      "Node (HV)": "3",
-      "Node (LV)": "7",
-      "Type (Line, T2, T3)": "T2",
-      "Impedance, Ohm": {
-        "Real": 0.645,
-        "Imaginary": 3.694
-      },
-      "Conductivity, S": {
-        "Real": 2.1e-5,
-        "Imaginary": 1.6e-4
-      },
-      "Transformation ratio HV-LV": 25
-    },
-    {
-      "Node (HV)": "4",
-      "Node (LV)": "8",
-      "Type (Line, T2, T3)": "T2",
-      "Impedance, Ohm": {
-        "Real": 1.915,
-        "Imaginary": 8.518
-      },
-      "Conductivity, S": {
-        "Real": 1.05e-5,
-        "Imaginary": 1.008e-4
-      },
-      "Transformation ratio HV-LV": 25
-    },
-    {
-      "Node (HV)": "5",
-      "Node (LV)": "9",
-      "Type (Line, T2, T3)": "T2",
-      "Impedance, Ohm": {
-        "Real": 0.947,
-        "Imaginary": 4.706
-      },
-      "Conductivity, S": {
-        "Real": 1.74e-5,
-        "Imaginary": 7.5e-5
-      },
-      "Transformation ratio HV-LV": 25
+      "Transformation ratio HV-LV": 10.45
     }
   ],
   "PARAMETERS": {
