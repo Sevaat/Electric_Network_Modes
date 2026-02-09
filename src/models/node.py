@@ -1,5 +1,5 @@
 from math import atan2
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 
@@ -21,29 +21,23 @@ class Node(BaseModel):
         :param dict_node: словарь входных данных узла
         :return: экземпляр узла
         """
-        if any([
-            "Name" in dict_node,
-            "Node type (L, S, LS)" in dict_node,
-            "Power, MVA" in dict_node,
-            "Voltage, kV" in dict_node,
-        ]):
-            if any([
-                "Real" in dict_node["Power, MVA"],
-                "Imaginary" in dict_node["Power, MVA"],
-                "Real" in dict_node["Voltage, kV"],
-                "Imaginary" in dict_node["Voltage, kV"],
-            ]):
-                name = dict_node["Name"]
-                type_node = dict_node["Node type (L, S, LS)"]
-                power: complex
-                if type_node == "S":
-                    power = complex(0, 0)
-                else:
-                    power = complex(dict_node["Power, MVA"]["Real"], dict_node["Power, MVA"]["Imaginary"])
-                voltage = complex(dict_node["Voltage, kV"]["Real"], dict_node["Voltage, kV"]["Imaginary"])
-                return cls(name=name, type_node=type_node, power=power, voltage=voltage)
+        fields_node = [
+            "Name",
+            "Node type (L, S, LS)",
+            ["Power, MVA", "Real", "Imaginary"],
+            ["Voltage, kV", "Real", "Imaginary"]
+        ]
+
+        if presence_parameters(fields_node, dict_node):
+            name = dict_node["Name"]
+            type_node = dict_node["Node type (L, S, LS)"]
+            power: complex
+            if type_node == "S":
+                power = complex(0, 0)
             else:
-                raise KeyError
+                power = complex(dict_node["Power, MVA"]["Real"], dict_node["Power, MVA"]["Imaginary"])
+            voltage = complex(dict_node["Voltage, kV"]["Real"], dict_node["Voltage, kV"]["Imaginary"])
+            return cls(name=name, type_node=type_node, power=power, voltage=voltage)
         else:
             raise KeyError
 
@@ -76,3 +70,19 @@ class Node(BaseModel):
                 "Angle": atan2(self.voltage.imag, self.voltage.real),
             },
         }
+
+def presence_parameters(fields_node: List[str], dict_node: Dict[str, Any]) -> bool:
+    """
+    Проверить наличие ключа в словаре
+    :param fields_node: ключи для узла
+    :param dict_node: словарь данных узла
+    :return:
+    """
+    for fn in fields_node:
+        if not isinstance(fn, list):
+            if fn not in dict_node:
+                return False
+        else:
+            if fn[0] not in dict_node and fn[1] not in dict_node[fn[0]] and fn[2] not in dict_node[fn[0]]:
+                return False
+    return True

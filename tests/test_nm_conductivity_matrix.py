@@ -151,11 +151,7 @@ def test_conductivity_matrix_values_line():
         )
     ]
     Y = get_conductivity_matrix(nodes, branches)
-
-    # y = 1 / impedance
     y = 1 / impedance
-    # Y[0,1] = Y[1,0] = -y
-    # Y[0,0] = Y[1,1] = y
     assert Y[0, 1] == -y
     assert Y[1, 0] == -y
     assert Y[0, 0] == y

@@ -1,6 +1,6 @@
 from abc import ABC
 from copy import deepcopy
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -14,79 +14,48 @@ class IterativeGaussianMethod(ABC):
     @staticmethod
     def _get_matrix_b(nodes: List[Node], conductivity_matrix: np.ndarray) -> np.ndarray:
         """Получить матрицу B из уравнения AX=B"""
-        node_s = next(i for i, node in enumerate(nodes) if node.type_node  == "S")
+        node_s = next(i for i, node in enumerate(nodes) if node.type_node == "S")
         matrix_b = []
         for i, node in enumerate(nodes):
             if node.type_node != "S":
                 s = node.power
                 if node.type_node != "LS":
                     s = -s
-                b = s.conjugate() / 3 ** 0.5 / node.voltage - conductivity_matrix[node_s, i] * nodes[
-                    node_s].voltage
+                b = s.conjugate() / node.voltage.conjugate() - conductivity_matrix[node_s, i] * nodes[node_s].voltage
                 matrix_b.append(b)
         return np.array(matrix_b)
 
     @staticmethod
-    def _condition(matrix_b: np.ndarray, new_matrix_b: np.ndarray, parameters: Parameters) -> bool:
+    def _get_power_imbalance(nodes: List[Node], conductivity_matrix: np.ndarray) -> List[complex]:
+        """Получить небалансы мощности в узлах"""
+        power_imbalance: List[complex] = []
+        for i in range(len(nodes)):
+            full_power: Optional[complex] = None
+            if nodes[i].type_node == "S":
+                full_power = complex(0, 0)
+            elif nodes[i].type_node == "LS":
+                full_power = -nodes[i].power
+            else:
+                full_power = nodes[i].power
+            s_imb = full_power + conductivity_matrix[i, i].conjugate() * nodes[i].voltage * nodes[i].voltage.conjugate()
+            for j in range(len(nodes)):
+                if j != i:
+                    s_imb += conductivity_matrix[i, j].conjugate() * nodes[i].voltage * nodes[j].voltage.conjugate()
+            power_imbalance.append(s_imb)
+        return power_imbalance
+
+    @staticmethod
+    def _condition(nodes: List[Node], parameters: Parameters, power_imbalance: List[complex]) -> bool:
         """Проверять на достижение точности расчета"""
-        for i in range(len(matrix_b)):
-            if abs(new_matrix_b[i] - matrix_b[i]) > parameters.accuracy:
-                return False
+        for i, p_imb in enumerate(power_imbalance):
+            if nodes[i].type_node != "S":
+                if abs(p_imb.real) > parameters.accuracy and abs(p_imb.imag) > parameters.accuracy:
+                    return False
         return True
 
     @staticmethod
-    def _currents(nodes: List[Node], branches: List[Line | Transformer2 | Transformer3],
-                  conductivity_matrix: np.ndarray) -> List[Line | Transformer2 | Transformer3]:
-        """Рассчитывать комплексные токи в ветвях"""
-        for branch in branches:
-            if isinstance(branch, Line):
-                branch.current = (branch.start.voltage - branch.end.voltage) / branch.impedance
-            elif isinstance(branch, Transformer2):
-                branch.current = (branch.high.voltage - branch.low.voltage) / branch.impedance
-            elif isinstance(branch, Transformer3):
-                h = nodes.index(branch.high)
-                m = nodes.index(branch.middle)
-                l = nodes.index(branch.low)
-                i_hm = (branch.high.voltage - branch.middle.voltage) * conductivity_matrix[h, m]
-                i_hl = (branch.high.voltage - branch.low.voltage) * conductivity_matrix[h, l]
-                i_ml = (branch.middle.voltage - branch.low.voltage) * conductivity_matrix[m, l]
-                i_h = i_hm + i_hl
-                i_m = i_hm - i_ml
-                i_l = i_hl + i_ml
-                if isinstance(i_h, complex) and isinstance(i_m, complex) and isinstance(i_l, complex):
-                    branch.high_current = i_h
-                    branch.middle_current = i_m
-                    branch.low_current = i_l
-            else:
-                raise TypeError
-        return branches
-
-    @staticmethod
-    def _power_losses(branches: List[Line | Transformer2 | Transformer3]) -> List[Line | Transformer2 | Transformer3]:
-        """Рассчитывать потери мощности в элементах сети"""
-        for branch in branches:
-            if isinstance(branch, Line) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current ** 2 * branch.impedance
-            elif isinstance(branch, Transformer2) and isinstance(branch.current, complex):
-                branch.power_losses = branch.current ** 2 * branch.impedance + branch.high.voltage ** 2 * branch.conductivity
-            elif (
-                    isinstance(branch, Transformer3)
-                    and isinstance(branch.high_current, complex)
-                    and isinstance(branch.middle_current, complex)
-                    and isinstance(branch.low_current, complex)
-            ):
-                s_h = branch.high.voltage * branch.high_current.conjugate() + branch.high.voltage ** 2 * branch.high_conductivity
-                s_m = branch.middle.voltage * (-branch.middle_current).conjugate()
-                s_l = branch.low.voltage * (-branch.low_current).conjugate()
-                ds = s_h + s_m + s_l
-                branch.power_losses = ds
-            else:
-                raise TypeError
-        return branches
-
-    @staticmethod
     def run(
-            nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
+        nodes: List[Node], branches: List[Line | Transformer2 | Transformer3], parameters: Parameters
     ) -> Tuple[List[Node], List[Line | Transformer2 | Transformer3]]:
         """
         Произвести расчет установившегося режима методом простой итерации
@@ -99,8 +68,6 @@ class IterativeGaussianMethod(ABC):
         # матрица проводимостей без столбца и строки базисного узла
         node_s = next(i for i, node in enumerate(nodes) if node.type_node == "S")
         matrix_a = np.delete(np.delete(conductivity_matrix, node_s, axis=0), node_s, axis=1)
-
-
 
         for iteration in range(parameters.iterations):
             # матрица свободных членов без базисного узла на текущей итерации
@@ -115,12 +82,15 @@ class IterativeGaussianMethod(ABC):
                     j += 1
             # расчет новых свободных членов
             new_matrix_b = IterativeGaussianMethod._get_matrix_b(nodes, conductivity_matrix)
+            for branch in branches:
+                if branch.type_branch != "T3":
+                    branch.calculate_current_losses()
+                else:
+                    branch.calculate_current_losses(nodes, conductivity_matrix)
             # проверка по условию выхода
-            if IterativeGaussianMethod._condition(matrix_b, new_matrix_b, parameters):
+            power_imbalance = IterativeGaussianMethod._get_power_imbalance(nodes, conductivity_matrix)
+            if IterativeGaussianMethod._condition(nodes, parameters, power_imbalance):
                 print(f"Точность достигнута! Расчет окончен на итерации №{iteration}!")
                 break
             matrix_b = deepcopy(new_matrix_b)
-
-        branches = IterativeGaussianMethod._currents(nodes, branches, conductivity_matrix)
-        branches = IterativeGaussianMethod._power_losses(branches)
         return nodes, branches
